@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ascii Art Web</title>
+
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cousine:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Outfit:wght@100..900&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&family=Syne+Mono&family=Tourney:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!--  <header>
+    {{ .Header }}
+  </header> 
+  -->
+
+  <div class="topScrollWrapper">
+    <div class="topScrollFakeContent"></div>
+  </div>
+
+  <div class="asciiWrapper">
+    <pre class="asciiOutput"> {{.Output}} </pre>
+  </div>
+
+  <footer>
+    <form action="/ascii-art" method="POST">
+      <div class="FooterContainer">
+
+        <span class="line-title" id="footer-toggle" style="cursor: pointer; user-select: none;">
+          <span class="toparrow">&#8964;</span>
+        </span>
+
+        <div class="optionsLine1">
+          <span class="line-title" id="font-toggle" style="cursor: pointer; user-select: none;">
+            <span class="arrow">&#8964;</span>&nbsp;<span id="font-text">FONT</span>&nbsp;<span
+              class="arrow">&#8964;</span>
+          </span>
+          <div class="font-radio-group">
+            <label class="radio-container">
+              <input type="radio" name="font" value="standard" checked />
+              <span class="label-text">Standard</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="font" value="shadow" />
+              <span class="label-text">Shadow</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="font" value="thinkertoy" />
+              <span class="label-text">Thinkertoy</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="font" value="bloody" />
+              <span class="label-text">Bloody</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="font" value="extra" />
+              <span class="label-text">Extra</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="font" value="stylish" />
+              <span class="label-text">Stylish</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="optionsLine2">
+          <span class="line-title" id="options-toggle" style="cursor: pointer; user-select: none;">
+            <span class="arrow">&#8964;</span> OPTIONS <span class="arrow">&#8964;</span>
+          </span>
+          <div class="line2-group">
+            <label class="checkbox-container">
+              <input type="checkbox" id="font-wrap-toggle" name="FontWrap" value="on" checked />
+              <span class="checkmark-text">Word Wrap</span>
+            </label>
+            <select id="font-align-select" name="FontAlign" class="ascSelect">
+              <option value="left" selected>Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+              <option value="justify">Justify</option>
+            </select>
+
+            <button type="button" id="copy-btn" class="checkmark-text ascButton">Copy</button>
+            <button type="button" id="save-btn" class="checkmark-text ascButton">Download</button>
+            <button type="button" id="reset-btn" class="checkmark-text ascButton">Reset</button>
+
+            <label class="slider-container">
+              <input type="checkbox" id="theme-toggle">
+              <span class="slider round"></span>
+              <span class="slider-text SLtext-left">Light</span>
+              <span class="slider-text SLtext-right">Dark</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="inputTextLine">
+          <span class="line-title" id="text-toggle" style="cursor: pointer; user-select: none;">
+            <span class="arrow">&#8964;</span> TEXT INPUT <span class="arrow">&#8964;</span>
+          </span>
+
+          <div class="inputText-group">
+            <textarea id="user-text" name="userText" rows="2" placeholder="{{.InitInput}}"
+              required>{{.UserText}}</textarea>
+          </div>
+
+          <div class="submit-controls-group">
+            <input type="hidden" id="max-chars-input" name="max_chars" value="50">
+            <button type="submit" class="ascButton ascButton-submit">Submit</button>
+            <label class="checkbox-container">
+              <input type="checkbox" id="realtime-toggle" name="Realtime" value="1" />
+              <span class="checkmark-text">Realtime</span>
+            </label>
+          </div>
+        </div>
+        <div class="addColor row-collapsed">
+          <span class="line-title" id="colors-toggle" style="cursor: pointer; user-select: none;">
+            <span class="arrow">&#8964;</span> COLORS <span class="arrow">&#8964;</span>
+          </span>
+
+          <div class="Colors-Container">
+            <div class="colors-scroll-wrapper" id="colors-list">
+              <button id="add-color-btn" type="button" class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </footer>
+
+
+  <script src="/static/fetch.js"></script>
+  <script src="/static/aScrollSync.js"></script>
+  <script src="/static/darkMode.js"></script>
+  <script src="/static/fontWrap.js"></script>
+  <script src="/static/footerCollapse.js"> </script>
+  <script src="/static/featuresCollapse.js"></script>
+
+  <!-- <script src="/static/bg.js"></script> -->
+
+
+
+</body>
+
+</html>
