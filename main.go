@@ -101,7 +101,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			f.RenderResult()
 			var rawHTML string
 			for i := 0; i < len(f.FinalResult); i++ {
-				rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>\n"
+				rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
 			}
 
 			Data.Output = template.HTML(rawHTML)
@@ -162,7 +162,7 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	f.RenderResult()
 	var rawHTML string
 	for i := 0; i < len(f.FinalResult); i++ {
-		rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>\n"
+		rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
 	}
 
 	Data.Output = template.HTML(rawHTML)

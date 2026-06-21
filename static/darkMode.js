@@ -1,3 +1,5 @@
+// ── theme ────────────────────────────────────────────────────────────────────⊃
+
 // Helper function to manage local dark theme state and storage
 function toggleTheme(isDark) {
     if (isDark) {
@@ -17,6 +19,9 @@ function toggleTheme(isDark) {
     if (typeof STATE !== 'undefined') {
         STATE.is_dark = isDark;
     }
+
+    // Dispatch the custom event to notify listeners (like the ASCII background)
+    window.dispatchEvent(new CustomEvent('themeChanged'));
 }
 
 // Initial theme bootstrap from localStorage executed immediately to prevent flashing

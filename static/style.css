@@ -2,21 +2,24 @@
 :root {
   --bg-color: #ffffff;
   --bg-effect-color: #eeeeee;
-  --panel-color: #616161;
-  --panel-effect-color: #3f3f3f;
+  --panel-color: #132b4bcc;
+  /*--panel-color: #616161b2;*/
   --panel-text-color: #ffffff;
   --line-color: #000000;
   --text-color: #000000;
   --accent-color: #89bcff;
   --accent2-color: #0073ff;
+
+  --light-bg-effe: #bebebe;
+  --dark-bg-effe: #363636;
 }
 
 /* Dark Mode color overrides targeting the body element specifically */
 body[data-theme="dark"] {
   --bg-color: #000000;
   --bg-effect-color: #111111;
-  --panel-effect-color: #808080;
-  --panel-color: #2b2b2b;
+  --panel-color: #242c41b2;
+  /*--panel-color: #2b2b2bb2;*/
   --panel-text-color: #ffffff;
   --line-color: #000000;
   --text-color: #ffffff;
@@ -87,6 +90,8 @@ body {
   /* Firefox: Disables the scrollbar entirely */
   -ms-overflow-style: none;
   /* IE and Legacy Edge */
+
+  /*background-color: color-mix(in srgb, var(--bg-color) 20%, transparent);*/
 }
 
 /* Chrome, Safari, Opera, New Edge: Removes the visual track and its gutter size */
@@ -95,6 +100,7 @@ body {
   /* FIX: Deletes the element from layout calculation so it doesn't reserve pixels */
   height: 0px;
   width: 0px;
+
 }
 
 
@@ -102,8 +108,8 @@ body {
    ASCII OUTPUT
    ========================================================================== */
 .asciiOutput {
-  font-size: 12px;
-
+  font-size: 10px;
+  font-weight: 900;
   margin: 0;
   padding: 0;
 
@@ -121,10 +127,10 @@ body {
 footer {
   position: fixed;
   bottom: 0px;
-  /*left: clamp(0px, 1vw, 8vw);
-  right: clamp(0px, 1vw, 8vw); */
-  left: 0;
-  right: 0;
+  left: clamp(0px, 1vw, 8vw);
+  right: clamp(0px, 1vw, 8vw);
+  /*left: 0;
+  right: 0;* /
   /* Fixed: Uses template variables for proper panel framing */
   border: 3px solid var(--line-color);
   border-bottom: none;
@@ -141,12 +147,12 @@ footer {
   transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/*@media (max-width: 999px) {
+@media (max-width: 999px) {
   footer {
     left: 0;
     right: 0;
   }
-}*/
+}
 
 footer.collapsed {
   transform: translateY(calc(100% - 5px)) !important;
@@ -377,6 +383,14 @@ footer.peek .line-title:hover .toparrow {
 .checkbox-container input[type="checkbox"]:checked+.checkmark-text {
   font-weight: 400;
   color: var(--accent-color);
+}
+
+.checkbox-container-down {
+  font-family: "Outfit", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: inherit;
+  font-size: 20px;
 }
 
 /* ==========================================================================
