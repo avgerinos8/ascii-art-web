@@ -102,10 +102,7 @@ body {
    ASCII OUTPUT
    ========================================================================== */
 .asciiOutput {
-  font-family: "Cousine", monospace;
-  font-weight: 600;
-  font-style: normal;
-  font-size: 28px;
+  font-size: 12px;
 
   margin: 0;
   padding: 0;

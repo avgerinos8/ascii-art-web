@@ -48,7 +48,7 @@ function sendUpdate() {
         .then(r => r.json())
         .then(data => {
             const out = document.querySelector('.asciiOutput');
-            if (out && data.Output !== undefined) { out.textContent = data.Output; }
+            if (out && data.Output !== undefined) { out.innerHTML = data.Output; }
         })
         .catch(e => console.error(e));
 }

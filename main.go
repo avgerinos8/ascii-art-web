@@ -1,6 +1,8 @@
 package main
 
 import (
+	"asciiartweb/internal/arghandler"
+	"asciiartweb/internal/font"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -8,12 +10,14 @@ import (
 	"strconv"
 )
 
+var PageWidth = 80
+
 // PageData maps out template variable configurations injected straight into index.html
 type PageData struct {
 	Title     string
 	Header    string
 	InitInput string
-	Output    string
+	Output    template.HTML
 	UserText  string
 }
 
@@ -38,6 +42,10 @@ var Data = PageData{
 	UserText: "",
 	Output:   logo,
 }
+
+var fonts []string = []string{"standard", "shadow", "thinkertoy", "extra", "blody", "stylish"}
+
+var Config *arghandler.Config = arghandler.NewConfig()
 
 // Entrypoint configuration routing all endpoints
 func main() {
@@ -77,14 +85,26 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			// Read form entries straight into the blank identifier (_) using exact HTML layout names
 			Data.UserText = r.FormValue("userText")
-			_ = r.FormValue("FontWrap")
+			Config.NormalizeInput(r.FormValue("userText"))
+			Config.Output = r.FormValue("FontWrap")
 			_ = r.FormValue("Realtime")
-			_ = r.FormValue("FontAlign")
-			_ = r.FormValue("font")
-			_, _ = strconv.Atoi(r.FormValue("max_chars"))
+			Config.Align = r.FormValue("FontAlign")
+			Config.Font = r.FormValue("font")
+			Config.PageCharacterWidth, err = strconv.Atoi(r.FormValue("max_chars"))
+			if err != nil {
+				Config.PageCharacterWidth = 80
+				fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
+				w.WriteHeader(http.StatusBadRequest)
+			}
 
-			// TODO: Partners should write core logic here
-			Data.Output = Data.UserText
+			f := font.CreateFont(Config)
+			f.RenderResult()
+			var rawHTML string
+			for i := 0; i < len(f.FinalResult); i++ {
+				rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>\n"
+			}
+
+			Data.Output = template.HTML(rawHTML)
 		}
 	}
 
@@ -131,16 +151,23 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// Assign clean properties
-	_ = incoming.FontWrap
-	_ = incoming.FontAlign
-	_ = incoming.ActiveFont
+	Config.Output = incoming.FontWrap
+	Config.Align = incoming.FontAlign
+	Config.Font = incoming.ActiveFont
 	_ = incoming.Realtime
-	text := incoming.UserText
-	_ = incoming.MaxChars
+	Config.NormalizeInput(incoming.UserText)
+	Config.PageCharacterWidth = incoming.MaxChars
 
+	f := font.CreateFont(Config)
+	f.RenderResult()
+	var rawHTML string
+	for i := 0; i < len(f.FinalResult); i++ {
+		rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>\n"
+	}
+
+	Data.Output = template.HTML(rawHTML)
 	// Update the global template data with the generated result.
 	// TODO: replace this string literal with core ASCII generator function.
-	Data.Output = text
 
 	// Inform the client browser that the response body contains data formatted as JSON.
 	w.Header().Set("Content-Type", "application/json")
