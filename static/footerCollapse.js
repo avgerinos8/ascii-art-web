@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Only peek if it is currently fully collapsed
             if (footer.classList.contains('collapsed')) {
                 footer.classList.replace('collapsed', 'peek');
-                if (fontText) fontText.textContent = 'HUHU';
+                /* if (fontText) fontText.textContent = 'HUHU'; */
             }
         });
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleBtn.addEventListener('mouseleave', () => {
             if (footer.classList.contains('peek')) {
                 footer.classList.replace('peek', 'collapsed');
-                if (fontText) fontText.textContent = 'FONT';
+                /* if (fontText) fontText.textContent = 'FONT'; */
             }
         });
     }

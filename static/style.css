@@ -276,7 +276,7 @@ footer.collapsed .line-title:hover .toparrow {
 }
 
 footer.peek {
-  transform: translateY(calc(100% - 18px)) !important;
+  transform: translateY(calc(100% - 14px)) !important;
 }
 
 footer.peek .line-title:hover .toparrow {
@@ -352,9 +352,9 @@ footer.peek .line-title:hover .toparrow {
    OPTIONS ROWS
    ========================================================================== */
 .optionsLine1 {
-  margin-top: 4px;
+  margin-top: 8px;
   margin-bottom: 4px;
-  padding-top: 5px;
+  padding-top: 9px;
   padding-bottom: 5px;
   /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) dashed 1px;
@@ -390,7 +390,7 @@ footer.peek .line-title:hover .toparrow {
 .optionsLine2 {
   margin-top: 12px;
   margin-bottom: 4px;
-  padding-top: 5px;
+  padding-top: 9px;
   padding-bottom: 5px;
   /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) solid 1px;
@@ -406,7 +406,7 @@ footer.peek .line-title:hover .toparrow {
   justify-content: flex-start;
 }
 
-.line2-group {
+.line3-group {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -423,7 +423,7 @@ footer.peek .line-title:hover .toparrow {
 }
 
 @media (max-width: 1000px) {
-  .line2-group {
+  .line3-group {
     gap: clamp(0px, 1.8vw, 25px);
   }
 }
@@ -455,7 +455,7 @@ footer.peek .line-title:hover .toparrow {
   position: relative;
 }
 
-.line3-group {
+.line2-group {
   margin: 0;
   padding: 0;
   display: flex;
