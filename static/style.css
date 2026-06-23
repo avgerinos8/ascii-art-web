@@ -1,25 +1,23 @@
-/* Normal / Light Mode variables applied to root */
+/* ==========================================================================
+   THEME VARIABLES
+   ========================================================================== */
 :root {
   --bg-color: #ffffff;
   --bg-effect-color: #eeeeee;
   --panel-color: #132b4bcc;
-  /*--panel-color: #616161b2;*/
   --panel-text-color: #ffffff;
   --line-color: #000000;
   --text-color: #000000;
   --accent-color: #89bcff;
   --accent2-color: #0073ff;
-
   --light-bg-effe: #bebebe;
   --dark-bg-effe: #363636;
 }
 
-/* Dark Mode color overrides targeting the body element specifically */
 body[data-theme="dark"] {
   --bg-color: #000000;
   --bg-effect-color: #111111;
   --panel-color: #242c41b2;
-  /*--panel-color: #2b2b2bb2;*/
   --panel-text-color: #ffffff;
   --line-color: #000000;
   --text-color: #ffffff;
@@ -28,61 +26,41 @@ body[data-theme="dark"] {
 }
 
 /* ==========================================================================
-   BODY 
+   BODY LAYOUT
    ========================================================================== */
 body {
   margin: 0;
   padding: 0;
   height: 100vh;
   overflow: hidden;
-
-  /* Fixed vertical linear gradient using custom variables */
-  background-image: linear-gradient(to bottom,
-      var(--bg-color) 20%,
-      var(--bg-effect-color) 75%);
-
-  /* Ensures the gradient stays locked in place relative to the viewport */
+  background-image: linear-gradient(to bottom, var(--bg-color) 20%, var(--bg-effect-color) 75%);
   background-attachment: fixed;
-
   color: var(--text-color);
 }
 
 /* ==========================================================================
-   ASCII LOGO (Centering & Auto-Hide Logic)
+   ASCII LOGO & AUTO-HIDE LOGIC
    ========================================================================== */
-
-/* 1. Centers the logo perfectly inside the wrapper */
 .logo {
-
   font-family: 'Cousine', monospace;
-  /* Clean, retro typewriter style */
   font-weight: 700;
-  /* Uses the loaded bold weight */
   font-size: 32px;
   color: var(--text-color);
   margin: 0 auto;
-  /* Centers the block horizontally */
   width: max-content;
-  /* Shrinks the block to the exact width of the ASCII text */
   text-align: left;
-  /* Keeps the internal characters aligned correctly */
   padding: 40px 0;
-  /* Vertical spacing */
   display: block;
-  /* Ensures margin: 0 auto works */
 }
 
-/* 2. THE AUTO-HIDE MAGIC: 
-   If .asciiOutput contains ANY text, hide the .logo immediately */
 .asciiOutput:not(:empty)~.logo,
 .asciiOutput:not(:empty) i,
-/* Fallback check */
 .asciiWrapper:has(.asciiOutput:not(:empty)) .logo {
   display: none !important;
 }
 
-/* ========================================================================== 
-   TOP SCROLLBAR (The fake one locked at the top) 
+/* ==========================================================================
+   SCROLL SYNCHRONIZATION CONTAINERS
    ========================================================================== */
 .topScrollWrapper {
   max-width: 100%;
@@ -90,72 +68,46 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   height: 12px;
-  margin-top: 0px;
-
   position: sticky;
   top: 0;
   z-index: 10;
-
   background-color: var(--bg-color, #ffffff);
-
   scrollbar-color: var(--accent-color) transparent;
   scrollbar-width: thin;
 }
-
 
 .topScrollFakeContent {
   height: 1px;
 }
 
-/* ==========================================================================
-   ASCII WRAPPER (Dynamic Space Management & Scroll Gutter Fix)
-   ========================================================================== */
 .asciiWrapper {
   display: block;
   max-width: 100vw;
   box-sizing: border-box;
-
-  /* Dynamic height calculation driven by your footer height */
   height: calc(100vh + 5px - var(--footer-height, 200px));
-
-  padding-bottom: 0px;
   margin: 0;
-
   overflow-x: auto;
   overflow-y: auto;
   position: relative;
   z-index: 5;
-
-  /* Cross-Browser Scrollbar Hiding (Keeps functionality but deletes reserved space) */
   scrollbar-width: none;
-  /* Firefox: Disables the scrollbar entirely */
   -ms-overflow-style: none;
-  /* IE and Legacy Edge */
-
-  /*background-color: color-mix(in srgb, var(--bg-color) 20%, transparent);*/
 }
 
-/* Chrome, Safari, Opera, New Edge: Removes the visual track and its gutter size */
 .asciiWrapper::-webkit-scrollbar {
   display: none;
-  /* FIX: Deletes the element from layout calculation so it doesn't reserve pixels */
   height: 0px;
   width: 0px;
-
 }
 
-
 /* ==========================================================================
-   ASCII OUTPUT
+   ASCII OUTPUT SCREEN
    ========================================================================== */
 .asciiOutput {
   font-size: 10px;
   font-weight: 900;
-  margin: 0;
-  padding: 0;
-
-  display: block;
   white-space: pre;
+  display: block;
   margin: 0;
   width: max-content;
   min-width: 100vw;
@@ -169,25 +121,18 @@ body:not([data-theme="dark"]) .asciiOutput {
   -webkit-text-stroke: 0.32px currentColor;
 }
 
-
 /* ==========================================================================
-   FOOTER
+   FOOTER SHELL CONTROL
    ========================================================================== */
 footer {
   position: fixed;
   bottom: 0px;
-  /*left: clamp(0px, 1vw, 8vw);
-  right: clamp(0px, 1vw, 8vw);*/
   left: 0;
   right: 0;
-  /* Fixed: Uses template variables for proper panel framing */
   border: 3px solid var(--line-color);
   border-bottom: none;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-
-  /* box-shadow: 0 1px 50px 1px rgba(88, 88, 88, 0.4); */
-
   background-color: var(--panel-color);
   color: var(--panel-text-color);
   text-align: center;
@@ -196,16 +141,12 @@ footer {
   transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/*
-@media (max-width: 999px) {
-  footer {
-    left: 0;
-    right: 0;
-  }
-}
-*/
 footer.collapsed {
   transform: translateY(calc(100% - 5px)) !important;
+}
+
+footer.peek {
+  transform: translateY(calc(100% - 14px)) !important;
 }
 
 #footer-toggle {
@@ -230,7 +171,6 @@ footer.collapsed {
   height: 100%;
 }
 
-/* Badge label overlaying the top border line perfectly */
 .line-title {
   position: absolute;
   top: 0;
@@ -246,6 +186,7 @@ footer.collapsed {
   border: 3px solid #000000;
   display: inline-block;
   z-index: 25;
+  transition: color 0.8s, background-color 0.8s;
 }
 
 .line-title .toparrow {
@@ -256,10 +197,6 @@ footer.collapsed {
 
 footer.collapsed .line-title .toparrow {
   transform: translateY(2px);
-}
-
-.line-title {
-  transition: color 0.8s, background-color 0.8s;
 }
 
 .line-title:hover {
@@ -273,10 +210,6 @@ footer.collapsed .line-title .toparrow {
 
 footer.collapsed .line-title:hover .toparrow {
   transform: translateY(1px);
-}
-
-footer.peek {
-  transform: translateY(calc(100% - 14px)) !important;
 }
 
 footer.peek .line-title:hover .toparrow {
@@ -293,7 +226,9 @@ footer.peek .line-title:hover .toparrow {
   transform: translateY(2px);
 }
 
-/* Force all borders to become solid when the row is collapsed */
+/* ==========================================================================
+   COLLAPSIBLE STATE MODIFIERS
+   ========================================================================== */
 .optionsLine1.row-collapsed,
 .optionsLine2.row-collapsed,
 .inputTextLine.row-collapsed,
@@ -304,42 +239,10 @@ footer.peek .line-title:hover .toparrow {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   margin-bottom: 5px;
-
   background-color: rgba(0, 0, 0, 0.15);
-
-  /* FIX: Replaced #000000 with var(--line-color) so lines turn white in Dark Mode */
-  background-image: repeating-linear-gradient(90deg,
-      var(--line-color),
-      var(--line-color) 1px,
-      transparent 1px,
-      transparent 5px) !important;
+  background-image: repeating-linear-gradient(90deg, var(--line-color), var(--line-color) 1px, transparent 1px, transparent 5px) !important;
 }
 
-
-/* ── Collapse States ──────────────────────────────────────────────────────── */
-
-/* 1. Parent wrappers shrink, but do NOT clip overflow so titles remain visible */
-.optionsLine1.row-collapsed,
-.optionsLine2.row-collapsed,
-.inputTextLine.row-collapsed,
-.addColor.row-collapsed {
-  border: var(--line-color) solid 1px !important;
-  height: 10px !important;
-  min-height: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 5px;
-  /* Removed: overflow: hidden !important; */
-
-  background-color: rgba(0, 0, 0, 0.15);
-  background-image: repeating-linear-gradient(90deg,
-      var(--line-color),
-      var(--line-color) 1px,
-      transparent 1px,
-      transparent 5px) !important;
-}
-
-/* 2. Completely remove internal groups from layout to prevent height bleeding */
 .optionsLine1.row-collapsed .font-radio-group,
 .optionsLine2.row-collapsed .line2-group,
 .inputTextLine.row-collapsed .inputText-group,
@@ -349,14 +252,13 @@ footer.peek .line-title:hover .toparrow {
 }
 
 /* ==========================================================================
-   OPTIONS ROWS
+   OPTIONS CONTROL PANELS
    ========================================================================== */
 .optionsLine1 {
   margin-top: 8px;
   margin-bottom: 4px;
   padding-top: 9px;
   padding-bottom: 5px;
-  /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) dashed 1px;
   display: flex;
   align-items: center;
@@ -392,7 +294,6 @@ footer.peek .line-title:hover .toparrow {
   margin-bottom: 4px;
   padding-top: 9px;
   padding-bottom: 5px;
-  /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) solid 1px;
   display: flex;
   align-items: center;
@@ -410,14 +311,11 @@ footer.peek .line-title:hover .toparrow {
   display: flex;
   flex-direction: row;
   justify-content: center;
-
-
   flex-grow: 1;
   align-items: center;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-
   gap: 45px;
   transition: gap 0.2s ease;
 }
@@ -427,7 +325,6 @@ footer.peek .line-title:hover .toparrow {
     gap: clamp(0px, 1.8vw, 25px);
   }
 }
-
 
 .checkbox-container {
   font-family: "Outfit", sans-serif;
@@ -445,10 +342,7 @@ footer.peek .line-title:hover .toparrow {
 .optionsLine3 {
   margin: 0;
   padding: 0;
-  /* Fixed: Replaced text-color with line-color */
-
   margin-top: 12px;
-
   display: flex;
   align-items: center;
   width: 100%;
@@ -478,9 +372,8 @@ footer.peek .line-title:hover .toparrow {
   width: clamp(25px, 8vw, 150px);
 }
 
-
 /* ==========================================================================
-   SWITCH SLIDER (Fixed Dimensions & Math Layout)
+   SWITCH SLIDERS ENGINE
    ========================================================================== */
 .slider-container {
   display: inline-flex;
@@ -507,54 +400,40 @@ footer.peek .line-title:hover .toparrow {
   order: 1;
 }
 
+.SLtext-right {
+  order: 3;
+}
+
 .slider {
   position: relative;
   width: 40px;
-  /* Kept exactly at 40px */
   height: 20px;
-  /* Kept exactly at 20px */
   border: 2px solid var(--line-color);
   background-color: rgba(0, 0, 0, 0.25);
-  /* FIXED: Made the background darker to match your elements */
   box-sizing: border-box;
-  /* Crucial: includes the border in the 20px height calculation */
   transition: .4s;
   border-radius: 34px;
   order: 2;
 }
 
-.SLtext-right {
-  order: 3;
-}
-
-/* Inside tracking knob pin */
 .slider:before {
   position: absolute;
   content: "";
-  /* No interior border here to prevent layout distortion and clipping */
   height: 16px;
-  /* 20px height minus 4px (top + bottom borders) equals exactly 16px */
   width: 16px;
   left: 0px;
-  /* FIXED: Starts perfectly at 0px inside the left edge */
   top: 0px;
-  /* FIXED: Starts perfectly at 0px inside the top edge */
   background-color: var(--panel-text-color);
-  /* Dynamically driven by your Go variables */
   border-radius: 50%;
   transition: .4s;
 }
 
-/* Interactive slider and label illumination states */
 .slider-container input:checked+.slider {
   background-color: var(--accent-color);
 }
 
-/* Shifting transition translation math */
 .slider-container input:checked+.slider:before {
-  /* Total width (40px) minus knob width (16px) minus borders (4px) equals exactly 20px */
   transform: translateX(20px);
-  /* FIXED: Slides perfectly to the right edge without crashing */
 }
 
 .slider-container input:checked~.SLtext-right {
@@ -585,14 +464,13 @@ footer.peek .line-title:hover .toparrow {
 }
 
 /* ==========================================================================
-   TEXT INPUT FORM
+   INTERACTIVE TEXT FORM
    ========================================================================== */
 .inputTextLine {
   margin-top: 12px;
   margin-bottom: 4px;
   padding-top: 12px;
   padding-bottom: 5px;
-  /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) dashed 1px;
   display: flex;
   flex-direction: column;
@@ -604,9 +482,7 @@ footer.peek .line-title:hover .toparrow {
 
 .inputTextLine form {
   display: flex;
-  /* Stacks the input field and the send button vertically */
   flex-direction: column;
-  /* Centers the button horizontally */
   align-items: center;
   width: 100%;
   flex-grow: 1;
@@ -641,12 +517,11 @@ footer.peek .line-title:hover .toparrow {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  /* Clean gap separating button and checkbox */
   width: 100%;
 }
 
 /* ==========================================================================
-   COLOR FIELDS
+   DYNAMIC COLOR TRACKS & CARDS
    ========================================================================== */
 .addColor {
   margin-top: 12px;
@@ -668,23 +543,28 @@ footer.peek .line-title:hover .toparrow {
   position: relative;
 }
 
-.row-collapsed .Colors-Container {
-  display: none;
-}
-
+#colors-list,
 .colors-scroll-wrapper {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-start !important;
+  /* Fixed left side cutoff boundary overflow */
+  overflow-x: auto !important;
+  align-items: center !important;
   gap: 10px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0px 50px 0px 15px;
+  padding: 0px 15px;
   max-width: 100%;
   height: 108px;
   box-sizing: border-box;
   position: relative;
+
+  /* Hides physical scrollbars cleanly while safeguarding trackpad wheels */
+  &::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 .global-outfit-text {
@@ -731,13 +611,11 @@ footer.peek .line-title:hover .toparrow {
   overflow: hidden;
 }
 
-/* FIXED: Reduced font-size by exactly 4px (from 32px to 28px) for better spacing balance */
 .colorForm .substringInput::placeholder {
   font-family: "Outfit", sans-serif;
   font-weight: 900;
   font-style: normal;
   font-size: 28px;
-  /* Balanced massive placeholder size scaling */
   line-height: 1.1;
 }
 
@@ -841,12 +719,9 @@ footer.peek .line-title:hover .toparrow {
 
 .colorForm .delete-color-btn {
   position: absolute;
-
   right: -5px;
   bottom: -4px;
-
   background: var(--thumb-light);
-
   border: 1px solid var(--line-color);
   width: 24px;
   height: 24px;
@@ -859,51 +734,60 @@ footer.peek .line-title:hover .toparrow {
   color: var(--line-color);
   cursor: pointer;
   border-radius: 50%;
-  box-shadow: none;
-  outline: none;
-  transition: background-color 0.2s, color 0.2s, border-style 0.2s, border-color 0.2s;
   z-index: 40;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* FIXED: Standardized clean flat red transitions without any white or lighter-colored bleed borders */
 .colorForm .delete-color-btn:hover {
   background: #b60000 !important;
-  /* Pure flat primary crimson warning feedback background fill */
   color: #ffffff !important;
   border-style: solid !important;
-  /* Locks instantly into standard hard frame lines */
   border-color: #000000 !important;
-  /* Overwrites ghost glow outlines with exact matching solid hex red */
   box-shadow: none !important;
 }
 
-.add-btn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+/* ==========================================================================
+   ADD BUTTON CONTROLLER (FIXED: Locked inside the horizontal flow train)
+   ========================================================================== */
+.add-btn,
+#add-color-btn {
+  position: relative !important;
+  /* 🌟 FIX: Pulls button into native flex order chain */
+  right: auto !important;
+  /* Clear absolute frame attachments */
+  top: auto !important;
+  /* Let Flexbox handle precise vertical center alignments */
+  transform: none !important;
+
+  width: 35px;
+  height: 70px;
   background-color: var(--accent2-color);
   color: #ffffff;
   border: none;
-  width: 35px;
-  height: 70px;
   border-radius: 4px;
   font-size: 22px;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.2s ease-in-out, background-color 0.2s;
   z-index: 50;
+
+  flex-shrink: 0 !important;
+  /* Standardizes horizontal metrics safely */
+  margin-left: 20px !important;
+  /* Clear protective spacing from the last color card */
+  margin-right: 30px !important;
+  /* Safe buffer spacing from screen edge when scrolled */
+  transition: transform 0.2s ease-in-out, background-color 0.2s;
 }
 
-.add-btn:hover {
+.add-btn:hover,
+#add-color-btn:hover {
   background-color: var(--accent-color);
   color: #000000;
-  transform: translateY(-50%) scale(1.05);
+  transform: scale(1.05) !important;
+  /* 🌟 FIX: Isolated scale interaction without translateY breakage */
 }
 
-
 /* ==========================================================================
-   CUSTOM BUTTONS STYLE (.ascButton)
+   CUSTOM BUTTON CONTROLS (.ascButton)
    ========================================================================== */
 .ascButton {
   font-family: "Outfit", sans-serif;
@@ -912,64 +796,44 @@ footer.peek .line-title:hover .toparrow {
   text-transform: uppercase;
   letter-spacing: 1px;
 
-  background-color: rgba(0, 0, 0, 0.2);
-  /* FIX: Changed background-color to background-image and replaced #000000 with var(--line-color) */
-  background-image: repeating-linear-gradient(-45deg,
-      var(--line-color),
-      var(--line-color) 1px,
-      transparent 1px,
-      transparent 5px);
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  background-image: repeating-linear-gradient(-45deg, var(--line-color), var(--line-color) 1px, transparent 1px, transparent 5px) !important;
 
   color: var(--panel-text-color);
   border: 2px solid var(--line-color);
   border-radius: 4px;
-  /* Smooth professional rounding */
-
-
   padding: 4px 6px;
   cursor: pointer;
   user-select: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  /* Smooth transitions for high-fidelity feel */
-  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.8s ease,
-    scale 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s ease, scale 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Hover State: Lights up using your primary accent color */
 .ascButton:hover {
   background-image: none;
   background-color: var(--accent2-color);
   color: var(--bg-color);
-  /* Contrasts against the heavy accent background */
   border-color: var(--accent2-color);
   transform: translateY(1px);
 }
 
-/* Active / Press State: Snaps to accent2-color with a subtle physical click shrink */
 .ascButton:active {
   background-image: none;
   background-color: var(--accent-color);
   border-color: var(--accent-color);
   color: var(--bg-color);
   scale: 0.9;
-  /* Simulates a physical spring-loaded button press */
 }
 
-/* Focus State: Clean outline for accessibility when tabbed with keyboard */
 .ascButton:focus-visible {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 
-
 /* ==========================================================================
-  DROPDOWN (.ascSelect)
+   CUSTOM DROPDOWN FIELDS (.ascSelect)
    ========================================================================== */
 .ascSelect {
   font-family: "Outfit", sans-serif;
@@ -977,46 +841,34 @@ footer.peek .line-title:hover .toparrow {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-
-  /* Solid minimal layout instead of lines */
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: rgba(0, 0, 0, 0.25);
   color: var(--panel-text-color);
   border: 2px solid var(--line-color);
   border-radius: 4px;
-
   text-align-last: center;
-
-  /* Sizing alignment with buttons */
   padding: 4px 9px 4px 9px;
   height: 26px;
-  /* Matches standard button height */
   box-sizing: border-box;
-
   cursor: pointer;
   user-select: none;
   display: inline-flex;
   align-items: center;
 
-  /* Custom minimal geometric arrow */
+  /* Forcefully strip out both native and custom background arrows */
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='10' height='10' fill='white'><polygon points='0,3 10,3 5,8'/></svg>");
-  background-position: right 10px center;
-  background-repeat: no-repeat;
+  background-image: none !important;
 
-  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Hover State: Fills with your primary accent color */
+/* Hover State: Fills with primary accent color without injecting any arrows */
 .ascSelect:hover:not(:disabled) {
   background-color: var(--accent2-color);
   border-color: var(--accent2-color);
   color: var(--bg-color);
-  /* Dynamic invert of the arrow icon on hover */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='10' height='10' fill='black'><polygon points='0,3 10,3 5,8'/></svg>");
+  background-image: none !important;
 }
 
 /* Active / Open State: Subtle physical press */
@@ -1039,18 +891,9 @@ footer.peek .line-title:hover .toparrow {
 }
 
 /* ==========================================================================
-   GRAYED OUT STATE (When Font Wrap is disabled)
+   DISABLED INTERFACE MODIFIERS
    ========================================================================== */
-.ascSelect:disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-  border-color: var(--line-color);
-  background-color: transparent;
-  color: var(--panel-text-color);
-  pointer-events: none;
-  /* Disables all hover events */
-}
-
+.ascSelect:disabled,
 .ascButton-submit:disabled {
   opacity: 0.25;
   cursor: not-allowed;
@@ -1058,5 +901,4 @@ footer.peek .line-title:hover .toparrow {
   background-color: transparent;
   color: var(--panel-text-color);
   pointer-events: none;
-  /* Disables all hover events */
 }
