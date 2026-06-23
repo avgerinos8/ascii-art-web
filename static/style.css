@@ -434,8 +434,11 @@ footer.peek .line-title:hover .toparrow {
 }
 
 .optionsLine3 {
-  margin-top: 2px;
-  margin-bottom: 0px;
+  margin: 0;
+  padding: 0;
+  /* Fixed: Replaced text-color with line-color */
+
+  margin-top: 12px;
 
   display: flex;
   align-items: center;
@@ -444,6 +447,8 @@ footer.peek .line-title:hover .toparrow {
 }
 
 .line3-group {
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -452,7 +457,6 @@ footer.peek .line-title:hover .toparrow {
 }
 
 .checkbox-container-down {
-  margin-top: 12px;
   font-family: "Outfit", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -794,7 +798,6 @@ footer.peek .line-title:hover .toparrow {
 }
 
 
-
 /* ==========================================================================
   DROPDOWN (.ascSelect)
    ========================================================================== */
@@ -834,8 +837,7 @@ footer.peek .line-title:hover .toparrow {
 
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.1s ease;
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hover State: Fills with your primary accent color */
@@ -849,7 +851,6 @@ footer.peek .line-title:hover .toparrow {
 
 /* Active / Open State: Subtle physical press */
 .ascSelect:active:not(:disabled) {
-  transform: scale(0.95);
   border-color: var(--accent-color);
 }
 

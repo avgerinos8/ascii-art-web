@@ -1,3 +1,5 @@
+// ── main ────────────────────────────────────────────────────────────────────⊃
+
 package main
 
 import (
@@ -21,31 +23,7 @@ type PageData struct {
 	UserText  string
 }
 
-// Fallback logo definition used during initialization
-const logo = `        A    
-        V   
-ASCII   G    
-N       E    
-T      ART    N
-O       I     E
-N       N     WEB
-I       O     M
-O       S     A
-U             N`
-
-// Global runtime template context reference
-var Data = PageData{
-	Title:     "ASCII Art Web",
-	Header:    "",
-	InitInput: "Please type something here...",
-	// UserText is used to save user last input text and persist across page reloads
-	UserText: "",
-	Output:   logo,
-}
-
 var fonts []string = []string{"standard", "shadow", "thinkertoy", "extra", "blody", "stylish"}
-
-var Config *arghandler.Config = arghandler.NewConfig()
 
 // Entrypoint configuration routing all endpoints
 func main() {
@@ -69,11 +47,19 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create a FRESH, isolated instance of PageData and Config for THIS request only
+	localData := PageData{
+		Title:     "ASCII Art Web",
+		Header:    "",
+		InitInput: "Please type something here...",
+		UserText:  "",
+		Output:    "",
+	}
+	localConfig := arghandler.NewConfig()
+
 	// Intercept traditional Form POST submissions
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err == nil {
-			// Print directly to console
-			// Print directly to console without mutating or breaking the blank identifiers (_)
 			fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s\n",
 				r.FormValue("userText"),
 				r.FormValue("FontWrap"),
@@ -83,28 +69,31 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				r.FormValue("max_chars"),
 			)
 
-			// Read form entries straight into the blank identifier (_) using exact HTML layout names
-			Data.UserText = r.FormValue("userText")
-			Config.NormalizeInput(r.FormValue("userText"))
-			Config.Output = r.FormValue("FontWrap")
+			// Populate our local data structures dynamically
+			localData.UserText = r.FormValue("userText")
+			localConfig.NormalizeInput(r.FormValue("userText"))
+			localConfig.Output = r.FormValue("FontWrap")
 			_ = r.FormValue("Realtime")
-			Config.Align = r.FormValue("FontAlign")
-			Config.Font = r.FormValue("font")
-			Config.PageCharacterWidth, err = strconv.Atoi(r.FormValue("max_chars"))
+			localConfig.Align = r.FormValue("FontAlign")
+			localConfig.Font = r.FormValue("font")
+
+			var err error
+			localConfig.PageCharacterWidth, err = strconv.Atoi(r.FormValue("max_chars"))
 			if err != nil {
-				Config.PageCharacterWidth = 80
+				localConfig.PageCharacterWidth = 80
 				fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
 				w.WriteHeader(http.StatusBadRequest)
+				return
 			}
 
-			f := font.CreateFont(Config)
+			f := font.CreateFont(localConfig)
 			f.RenderResult()
 			var rawHTML string
 			for i := 0; i < len(f.FinalResult); i++ {
 				rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
 			}
 
-			Data.Output = template.HTML(rawHTML)
+			localData.Output = template.HTML(rawHTML)
 		}
 	}
 
@@ -114,8 +103,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// Execute the template and send Output back to the client using POST
-	templ.Execute(w, Data)
+
+	// Execute using the isolated localData context safely
+	templ.Execute(w, localData)
 }
 
 // SessionHandler unpacks asynchronous dynamic JSON requests submitted by Javascript Fetch
@@ -125,7 +115,6 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// DELETE THIS MAYBE AFTER YOUR IMPLEMENTATION (anonymous struct <-LOVE!- to reference JSON properties):
 	var incoming struct {
 		FontWrap   string `json:"font_wrap"`
 		FontAlign  string `json:"font_align"`
@@ -135,7 +124,6 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 		MaxChars   int    `json:"max_chars"`
 	}
 
-	// Go parses the JSON and populates the struct automatically
 	if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
@@ -150,28 +138,30 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 		incoming.MaxChars,
 	)
 
-	// Assign clean properties
-	Config.Output = incoming.FontWrap
-	Config.Align = incoming.FontAlign
-	Config.Font = incoming.ActiveFont
-	_ = incoming.Realtime
-	Config.NormalizeInput(incoming.UserText)
-	Config.PageCharacterWidth = incoming.MaxChars
+	// Create isolated metrics for this specific async transaction
+	localData := PageData{
+		Title:     "ASCII Art Web",
+		InitInput: "Please type something here...",
+	}
+	localConfig := arghandler.NewConfig()
 
-	f := font.CreateFont(Config)
+	localConfig.Output = incoming.FontWrap
+	localConfig.Align = incoming.FontAlign
+	localConfig.Font = incoming.ActiveFont
+	_ = incoming.Realtime
+	localConfig.NormalizeInput(incoming.UserText)
+	localConfig.PageCharacterWidth = incoming.MaxChars
+	localData.UserText = incoming.UserText
+
+	f := font.CreateFont(localConfig)
 	f.RenderResult()
 	var rawHTML string
 	for i := 0; i < len(f.FinalResult); i++ {
 		rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
 	}
 
-	Data.Output = template.HTML(rawHTML)
-	// Update the global template data with the generated result.
-	// TODO: replace this string literal with core ASCII generator function.
+	localData.Output = template.HTML(rawHTML)
 
-	// Inform the client browser that the response body contains data formatted as JSON.
 	w.Header().Set("Content-Type", "application/json")
-
-	// Convert the Go struct 'Data' into a JSON string and stream it back to the Javascript Fetch API. This is the way we send Output back using the Fetch API
-	json.NewEncoder(w).Encode(Data)
+	json.NewEncoder(w).Encode(localData)
 }
