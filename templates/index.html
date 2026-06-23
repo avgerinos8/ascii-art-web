@@ -26,6 +26,16 @@
   </div>
 
   <div class="asciiWrapper">
+    <pre class="logo">        A    
+        V   
+ASCII   G    
+N       E    
+T      ART    N
+O       I     E
+N       N     WEB
+I       O     M
+O       S     A
+U             N </pre>
     <pre class="asciiOutput">{{.Output}}</pre>
   </div>
 
@@ -75,20 +85,24 @@
             <span class="arrow">&#8964;</span> OPTIONS <span class="arrow">&#8964;</span>
           </span>
           <div class="line2-group">
-            <label class="checkbox-container">
-              <input type="checkbox" id="font-wrap-toggle" name="FontWrap" value="on" checked />
-              <span class="checkmark-text">Word Wrap</span>
-            </label>
-            <select id="font-align-select" name="FontAlign" class="ascSelect">
-              <option value="left" selected>Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-              <option value="justify">Justify</option>
-            </select>
+            <div class="line2-subgroup">
+              <label class="checkbox-container">
+                <input type="checkbox" id="font-wrap-toggle" name="FontWrap" value="on" checked />
+                <span class="checkmark-text">Word Wrap </span>
+              </label>
+              <select id="font-align-select" name="FontAlign" class="ascSelect">
+                <option value="left" selected>Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+                <option value="justify">Justify</option>
+              </select>
+            </div>
 
-            <button type="button" id="copy-btn" class="checkmark-text ascButton">Copy</button>
-            <button type="button" id="save-btn" class="checkmark-text ascButton">Download</button>
-            <button type="button" id="reset-btn" class="checkmark-text ascButton">Reset</button>
+            <div class="line2-subgroup">
+              <button type="button" id="copy-btn" class="checkmark-text ascButton">Copy</button>
+              <button type="button" id="save-btn" class="checkmark-text ascButton">Download</button>
+              <button type="button" id="reset-btn" class="checkmark-text ascButton">Reset</button>
+            </div>
 
             <label class="slider-container">
               <input type="checkbox" id="theme-toggle">
@@ -105,7 +119,7 @@
           </span>
 
           <div class="inputText-group">
-            <textarea id="user-text" name="userText" rows="3" placeholder="{{.InitInput}}"
+            <textarea id="user-text" name="userText" rows="3" placeholder="&#10;{{.InitInput}}"
               required>{{.UserText}}</textarea>
           </div>
 

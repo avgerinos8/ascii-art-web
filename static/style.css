@@ -48,8 +48,39 @@ body {
 }
 
 /* ==========================================================================
-   TOP SCROLLBAR (The fake one locked at the top)
+   ASCII LOGO (Centering & Auto-Hide Logic)
    ========================================================================== */
+
+/* 1. Centers the logo perfectly inside the wrapper */
+.logo {
+
+  font-family: 'Cousine', monospace;
+  /* Clean, retro typewriter style */
+  font-weight: 700;
+  /* Uses the loaded bold weight */
+  font-size: 32px;
+  color: var(--text-color);
+  margin: 0 auto;
+  /* Centers the block horizontally */
+  width: max-content;
+  /* Shrinks the block to the exact width of the ASCII text */
+  text-align: left;
+  /* Keeps the internal characters aligned correctly */
+  padding: 40px 0;
+  /* Vertical spacing */
+  display: block;
+  /* Ensures margin: 0 auto works */
+}
+
+/* 2. THE AUTO-HIDE MAGIC: 
+   If .asciiOutput contains ANY text, hide the .logo immediately */
+.asciiOutput:not(:empty)~.logo,
+.asciiOutput:not(:empty) i,
+/* Fallback check */
+.asciiWrapper:has(.asciiOutput:not(:empty)) .logo {
+  display: none !important;
+}
+
 /* ========================================================================== 
    TOP SCROLLBAR (The fake one locked at the top) 
    ========================================================================== */
@@ -137,10 +168,10 @@ body {
 footer {
   position: fixed;
   bottom: 0px;
-  left: clamp(0px, 1vw, 8vw);
-  right: clamp(0px, 1vw, 8vw);
-  /*left: 0;
-  right: 0;* /
+  /*left: clamp(0px, 1vw, 8vw);
+  right: clamp(0px, 1vw, 8vw);*/
+  left: 0;
+  right: 0;
   /* Fixed: Uses template variables for proper panel framing */
   border: 3px solid var(--line-color);
   border-bottom: none;
@@ -157,13 +188,14 @@ footer {
   transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
+/*
 @media (max-width: 999px) {
   footer {
     left: 0;
     right: 0;
   }
 }
-
+*/
 footer.collapsed {
   transform: translateY(calc(100% - 5px)) !important;
 }
@@ -197,7 +229,7 @@ footer.collapsed {
   left: 50%;
   transform: translate(-50%, calc(-50% - 5px));
   font-family: "Outfit", sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   color: #ffffff;
   letter-spacing: 1px;
@@ -339,7 +371,7 @@ footer.peek .line-title:hover .toparrow {
   font-weight: 400;
   font-style: normal;
   color: inherit;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .radio-container input[type="radio"]:checked+.label-text {
@@ -357,6 +389,12 @@ footer.peek .line-title:hover .toparrow {
   align-items: center;
   width: 100%;
   position: relative;
+}
+
+.line2-subgroup {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-start;
 }
 
 .line2-group {
@@ -387,7 +425,7 @@ footer.peek .line-title:hover .toparrow {
   font-weight: 400;
   font-style: normal;
   color: inherit;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .checkbox-container input[type="checkbox"]:checked+.checkmark-text {
@@ -395,13 +433,37 @@ footer.peek .line-title:hover .toparrow {
   color: var(--accent-color);
 }
 
+.optionsLine3 {
+  margin-top: 2px;
+  margin-bottom: 0px;
+
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.line3-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-grow: 1;
+  align-items: center;
+}
+
 .checkbox-container-down {
+  margin-top: 12px;
   font-family: "Outfit", sans-serif;
   font-weight: 400;
   font-style: normal;
   color: inherit;
-  font-size: 20px;
+  font-size: 18px;
 }
+
+.checkbox-container-down input[type="range"] {
+  width: clamp(25px, 8vw, 150px);
+}
+
 
 /* ==========================================================================
    SWITCH SLIDER (Fixed Dimensions & Math Layout)
@@ -419,7 +481,7 @@ footer.peek .line-title:hover .toparrow {
   font-family: "Outfit", sans-serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 20px;
+  font-size: 18px;
   color: inherit;
   position: static;
   pointer-events: none;
@@ -623,7 +685,7 @@ footer.peek .line-title:hover .toparrow {
   overflow-x: auto;
   /* Ενεργοποίηση οριζόντιου scroll */
   white-space: nowrap;
-  padding: 10px;
+  padding: 2px;
   max-width: 100%;
   /* Περιορισμός στο πλάτος της οθόνης */
 }
@@ -651,9 +713,9 @@ footer.peek .line-title:hover .toparrow {
   color: #ffffff;
   border: none;
   width: 35px;
-  height: 35px;
+  height: 95px;
   border-radius: 4px;
-  font-size: 20px;
+  font-size: 25px;
   cursor: pointer;
   flex-shrink: 0;
 
