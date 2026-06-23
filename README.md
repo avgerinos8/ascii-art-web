@@ -1,3 +1,4 @@
+
 <h1 align="center">Ascii Art Web</h1>
 
 <p align="center">
@@ -15,280 +16,99 @@
 
 ## 📖 Overview
 
-**Ascii-art** is a Go-based CLI tool that transforms text into stylized ASCII art. It supports multiple banner fonts, selective ANSI coloring (by name, HEX, RGB, or HSL), output to files, terminal alignment, and reverse mode (ASCII art back to text).
+**Ascii Art Web** is a fully interactive, responsive web application that upgrades the classic ASCII art generation tool into a feature-rich graphical dashboard. Built with a robust **Go server** backend and an advanced native **JavaScript/CSS frontend**, it enables users to generate, style, color, and customize ASCII art dynamically through their browser.
 
 ---
 
-## 🚀 Usage
+## 🚀 Getting Started
+
+To spin up the web server locally, navigate to the project directory and execute:
 
 ```bash
-go run ./... [FLAGS] [TEXT] [BANNER]
+go run .
 ```
 
-All flags use `--flag=value` syntax. `TEXT` and `BANNER` are positional arguments. The order of flags relative to each other doesn't matter, but positional arguments (substrings and text) are assigned left-to-right.
+Once the server initializes, open your browser and navigate to:
+`http://localhost:8080` *(or your configured server port)*
 
 ---
 
-## 📐 Align Flag (`--align`)
-
-Aligns the ASCII art output relative to the terminal width.
-
-```bash
-go run ./... --align=center "Hello"
-go run ./... --align=right "Hello"
-go run ./... --align=left "Hello"
-go run ./... --align=justify "Hello"
-```
-
-Valid values: `left`, `right`, `center`, `justify`.
-
-Can be combined with colors and fonts:
-
-```bash
-go run ./... --align=center --color=cyan "Hello World" shadow
-go run ./... --align=right --color1=red --substring1=Hello "Hello World" standard
-```
----
-
-## 🎨 Color Flag (`--color`)
-
-Colors specific text using ANSI escape codes. By default, colors the entire output.
-
-```bash
-# Color the entire output red
-go run ./... --color=red "Hello World"
-
-# Color only a specific substring
-go run ./... --color=blue --substring=World "Hello World"
-
-# Shorthand: substring as a positional argument after the flag
-go run ./... --color=blue World "Hello World"
-```
-
-### Multiple colors
-
-Use numbered suffixes to apply different colors to different parts of the text.
-
-```bash
-# Two colors, using --substring flags
-go run ./... --color1=red --substring1=Hello --color2=blue --substring2=World "Hello World"
-
-# Two colors, using positional substrings
-go run ./... --color1=red --color2=blue Hello World "Hello World"
-
-# Three colors
-go run ./... --color1=red --substring1=H --color2=green --substring2=ello --color3=blue --substring3=World "Hello World"
-```
-
-> **Note:** When multiple colors match the same character, the one with the **longest substring** wins (greedy match). This means `--substring=Hello` takes priority over `--substring=H` for the letter `H`.
-
-### Supported color formats
-
-| Format | Example | Notes |
-|---|---|---|
-| Name | `--color=red` | Plain color name |
-| HEX (6-digit) | `--color=#ff5733` | Full hex code |
-| HEX (3-digit) | `--color=#f53` | Shorthand, expands to 6 digits |
-| RGB | `--color=rgb(255,87,51)` | 0–255 per channel |
-| HSL | `--color=hsl(14,100,60)` | H: 0–360, S/L: 0–100 |
-
-### All named colors
-
-```
-black      red        green      yellow     blue
-purple     cyan       white      bold
-
-brightblack    brightred      brightgreen   brightyellow
-brightblue     brightpurple   brightcyan    brightwhite
-
-orange   pink     magenta   gray/grey   brown
-darkred  gold     silver    navy        teal
-olive    lime     indigo    violet      maroon
-beige    coral    crimson   khaki
-
-default  reset
-```
-
----
-
-## 💾 Output Flag (`--output`)
-
-Saves the ASCII art to a `.txt` file instead of printing to the terminal. Color and alignment are **not** applied when writing to a file — plain ASCII only.
-
-```bash
-# Save to a specific file
-go run ./... --output=result.txt "Hello World"
-
-# Save with a specific banner
-go run ./... --output=result.txt "Hello World" shadow
-
-# Combine with other flags
-go run ./... --output=result.txt "All these words" stylish
-
-# No filename provided — saves to output.txt automatically
-go run ./... --output "Hello"
-```
-
-> The file **must** end with `.txt`. Any other extension will cause an error.
-
----
-
-## 🔄 Reverse Flag (`--reverse`)
-
-Reads an existing `.txt` file containing ASCII art and attempts to decode it back to the original text string.
-
-```bash
-# Reverse a previously generated file
-go run ./... --reverse=output.txt
-
-# Reverse any compatible ASCII art file
-go run ./... --reverse=result.txt
-```
-
-> When `--reverse` is used, no `TEXT` argument is needed or expected.
-
----
-
-## 🔤 Banner (Font) Selection
-
-The banner (font) is passed as a plain positional argument at the end. If none is specified, `standard` is used by default.
-
-```bash
-go run ./... "Hello" standard
-go run ./... "Hello" shadow
-go run ./... "Hello" thinkertoy
-go run ./... "Hello" extra
-go run ./... "Hello" stylish
-go run ./... "Hello" bloody
-```
-
-### Available banners
-
-| Name | Style |
-|---|---|
-| `standard` | Clean block letters (default) |
-| `shadow` | Letters with drop shadow |
-| `thinkertoy` | Rounded, playful style |
-| `extra` | Extended custom characters |
-| `stylish` | Elegant, condensed look |
-| `bloody` | Graffiti, horror-style font |
-
-### Multiple fonts
-
-If you pass more than one font name, one is **selected at random** each run:
-
-```bash
-# Randomly picks either shadow or bloody
-go run ./... "Hello" shadow bloody
-```
-
----
-
-## ✏️ Text Input
-
-### Multiple words
-
-Words are collected and joined with a space. Quotes are optional if words don't contain spaces.
-
-```bash
-go run ./... Hello World
-# same as:
-go run ./... "Hello World"
-```
-
-### Newlines (`\n`)
-
-Use `\n` inside a quoted string to insert line breaks in the output.
-
-```bash
-go run ./... "Hello\nWorld"
-go run ./... "Line one\nLine two\nLine three"
-```
-
-### Tabs (`\t`)
-
-Use `\t` inside a quoted string. Each tab is rendered as 3 spaces.
-
-```bash
-go run ./... "Name:\tJohn"
-```
-
-### Non-printable characters
-
-Any character outside the printable ASCII range (space to `~`) is **automatically omitted** with a console warning. The rest of the text renders normally.
-
----
-
-## 🔀 Combining Flags
-
-All flags can be combined freely.
-
-```bash
-# Colored, centered, saved to file
-go run ./... --color=gold --align=center --output=banner.txt "Zone01" stylish
-
-# Two colors, right-aligned, thinkertoy font
-go run ./... --color1=red --substring1=He --color2=cyan --substring2=llo --align=right "Hello" thinkertoy
-
-# Multi-word input, shadow font, blue color on a substring
-go run ./... --color=blue --substring=world hello world shadow
-
-# Full example with newlines and alignment
-go run ./... --align=center --color=brightgreen "Welcome\nTo\nAscii Art" bloody
-```
+## 🎨 Key Web Features
+
+### 🔤 Font Matrix Selection
+Choose from 6 uniquely styled banner fonts instantly via the stylized control bar:
+* `Standard` (Default block text)
+* `Shadow` (Dropped layout styling)
+* `Thinkertoy` (Playful rounded look)
+* `Bloody` (Horror/Graffiti type)
+* `Extra` (Extended custom character sheet)
+* `Stylish` (Condensed minimalist aesthetic)
+
+### 📊 Interactive Visual Effects (`OPTIONS`)
+Fine-tune the ambient UI background mechanics using responsive hardware-accelerated sliders:
+* **Size & Distance:** Adjust background matrix element boundaries.
+* **Speed & Depth:** Scale the biological procedural breath animations.
+* **Grain:** Controls independent visual digital noise levels.
+
+### 📝 Smart Text Input Terminal
+* **Dynamic Row Sizing:** Scale your text terminal area between `1` and `6` rows natively using the custom `▲` / `▼` toggle buttons.
+* **Realtime Processing:** Enable immediate live server requests as you type, or fall back to standard form submissions.
+* **Formatting Suite:** Full support for custom `Word Wrap` thresholds and geometric positioning (`Left`, `Center`, `Right`, `Justify`).
+
+### 🌈 Advanced HSL Substring Coloring
+Build an unlimited stack of complex target-matching rules:
+* Feed specific substrings into the dynamic color cards.
+* Manipulate fine-grain **Hue**, **Saturation**, and **Lightness** (HSL) values using custom-compiled inline track thumbs.
+* Match isolated phrases or fallback to an **"All Text"** global override canvas rule.
+
+### 💾 LocalState Persistence
+The interface contains memory triggers mapped to your browser's `localStorage`. Your active fonts, wrap configs, background metrics, and multi-row textarea structural sizes survive standard soft page reloads seamlessly. 
+* *To clear your layout profile and return to factory defaults, simply click the **Reset** button.*
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-ascii/
+ascii-art-web/
 ├── cmd/
-│   └── main.go               # Entry point
+│   └── main.go                 # HTTP Web Server router and controller logic
 ├── internal/
-│   ├── arghandler/           # Flag parsing, Config struct
-│   ├── color/                # Color codes parsing (hex, rgb, hsl, normal text)
-│   ├── console/              # Read console width
-│   ├── font/                 # Banner loading and rendering, reverse and align
-│   └── normalize/            # Text sanitization
-├── banners/                  # .txt banner files
+│   ├── font/                   # Banner file parsers and ASCII render matrix engines
+│   └── normalize/              # Multi-line text sanitization utilities
+├── banners/                    # Font source assets (.txt format)
 │   ├── standard.txt
 │   ├── shadow.txt
-│   ├── thinkertoy.txt
+│   └── thinkertoy.txt
+│   ├── bloody.txt
 │   ├── extra.txt
-│   ├── stylish.txt
-│   └── bloody.txt
-└── logs.txt                  # Auto-generated runtime logs
+│   └── stylish.txt
+└── static/                     # High-fidelity frontend asset directory
+    ├── style.css               # Dynamic dark/light layout stylesheet variables
+    ├── bg.js                   # Background particle animation and breath ticks
+    ├── fetch.js                # Async server requests handling
+    ├── darkMode.js             # Layout color profile toggles
+    ├── fontWrap.js             # Multi-line word wrapping constraints
+    ├── persistence.js          # LocalStorage state save/restore bindings
+    ├── colorPreview.js         # Interactive HSL generator card logic
+    ├── aScrollSync.js          # Synchronized layout positioning
+    ├── footerCollapse.js       # Master footer panel animations
+    └── featuresCollapse.js     # Granular modular configuration collagers
 ```
 
 ---
 
-## ⚠️ Common Errors
+## 🛠️ Build and Deploy
 
-| Situation | What happens |
-|---|---|
-| No text provided | Error message + usage hint, exits |
-| `--color` without enough substrings | Error message counting missing args, exits |
-| `--align` with invalid value | Error message + example, exits |
-| `--output` with non-`.txt` filename | Error message, exits |
-| `--reverse` with no filename or bad path | Error message + usage hint, exits |
-| Unknown characters in input | Warning printed, characters silently omitted |
-
----
-
-## 🔨 Build
+Compile a standalone production-ready optimized binary executable file:
 
 ```bash
-# Build the executable
-go build -o ascii ./cmd/main.go
+# Build the application
+go build -o ascii-web ./cmd/main.go
 
-# Run the compiled binary (same flags apply)
-./ascii "Hello World"
-./ascii --color=red --align=center "Hello" shadow
-./ascii --output=result.txt "Hello World" stylish
+# Start the application server
+./ascii-web
 ```
-
-> The binary can be moved anywhere on your system. Run it from the directory where the `banners/` folder is located, or from the repo root.
 
 ---
 
@@ -304,4 +124,4 @@ go build -o ascii ./cmd/main.go
 
 ## 📄 License
 
-Completed as part of the Zone01 Athens curriculum — Cohort 2.3.
+Completed as an advanced project within the official Zone01 Athens curriculum — Cohort 2.3.
