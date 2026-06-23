@@ -161,6 +161,14 @@ body {
   min-width: 100vw;
 }
 
+body[data-theme="dark"] .asciiOutput {
+  -webkit-text-stroke: 0.1px currentColor;
+}
+
+body:not([data-theme="dark"]) .asciiOutput {
+  -webkit-text-stroke: 0.32px currentColor;
+}
+
 
 /* ==========================================================================
    FOOTER
@@ -833,28 +841,22 @@ footer.peek .line-title:hover .toparrow {
 
 .colorForm .delete-color-btn {
   position: absolute;
-  top: 50%;
-  left: -12px;
-  transform: translateY(-50%);
-  background: var(--accent2-color);
-  border: 2px solid var(--line-color);
+
+  right: -5px;
+  bottom: -4px;
+
+  background: var(--thumb-light);
+
+  border: 1px solid var(--line-color);
   width: 24px;
   height: 24px;
-
-  /* FIXED: Turned into a perfect Flexbox container to strictly center the 'x' character */
   display: flex;
   justify-content: center;
-  /* Center horizontally */
   align-items: center;
-  /* Center vertically */
-
-  /* FIXED: Removed line-height completely as it causes baseline misalignment in circles */
   font-family: "Outfit", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 400;
   color: var(--line-color);
-  text-transform: uppercase;
-  letter-spacing: 1px;
   cursor: pointer;
   border-radius: 50%;
   box-shadow: none;

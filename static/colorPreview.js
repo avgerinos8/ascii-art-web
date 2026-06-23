@@ -122,7 +122,7 @@ addColorBtn.addEventListener('click', () => {
     <!-- FIXED: Bound value straight into the dynamically calculated initialHex string -->
     <input type="hidden" class="hidden-hex" name="hexcolorcode[]" value="${initialHex}">
     
-    <button type="button" class="delete-color-btn">x</button>
+    <button type="button" class="delete-color-btn">&times;</button>
   `;
 
     colorsList.insertBefore(colorDiv, addColorBtn);

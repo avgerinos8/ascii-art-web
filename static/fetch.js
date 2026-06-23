@@ -215,7 +215,7 @@ if (resetBtn) {
         STATE.user_text = "";
         STATE.realtime = false; // Turn off realtime temporary to prevent race-condition fetches
         STATE.font_wrap = 'on';
-        STATE.font_align = 'left';
+        STATE.font_align = 'center';
         STATE.active_font = 'standard';
 
         // 3. Force a standard clean Form Post back to Go to wipe its template persistence variables
