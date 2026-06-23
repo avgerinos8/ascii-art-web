@@ -11,77 +11,82 @@ import (
 
 // ── color dictionary and global configurations ───────────────────────────── ⊃
 
-// ColorMap stores the mapping between color names and their respective ANSI escape sequences.
-// By keeping this outside the function, we avoid re-allocating the map on every function call.
+// ColorMap stores the mapping between color names and their respective HEX values.
+// This allows uniform HTML span generation across all input formats.
 var ColorMap = map[string]string{
 	// Standard colors
-	"black":  "\033[0;30m",
-	"red":    "\033[0;31m",
-	"green":  "\033[0;32m",
-	"yellow": "\033[0;33m",
-	"blue":   "\033[0;34m",
-	"purple": "\033[0;35m",
-	"cyan":   "\033[0;36m",
-	"white":  "\033[0;37m",
+	"black":  "#000000",
+	"red":    "#ff0000",
+	"green":  "#008000",
+	"yellow": "#ffff00",
+	"blue":   "#0000ff",
+	"purple": "#800080",
+	"cyan":   "#00ffff",
+	"white":  "#ffffff",
 
-	// Bold/Bright colors
-	"bold":         "\033[1m",
-	"brightblack":  "\033[1;30m",
-	"brightred":    "\033[1;31m",
-	"brightgreen":  "\033[1;32m",
-	"brightyellow": "\033[1;33m",
-	"brightblue":   "\033[1;34m",
-	"brightpurple": "\033[1;35m",
-	"brightcyan":   "\033[1;36m",
-	"brightwhite":  "\033[1;37m",
+	// Bold/Bright colors mapped to clear hex variations
+	"bold":         "", // Handled as reset/ignore or custom fallback if needed
+	"brightblack":  "#555555",
+	"brightred":    "#ff5555",
+	"brightgreen":  "#55ff55",
+	"brightyellow": "#ffff55",
+	"brightblue":   "#5555ff",
+	"brightpurple": "#ff55ff",
+	"brightcyan":   "#55ffff",
+	"brightwhite":  "#ffffff",
 
-	// Additional common colors (extended set)
-	"orange":  "\033[38;5;208m",
-	"pink":    "\033[38;5;205m",
-	"magenta": "\033[0;35m",
-	"gray":    "\033[38;5;244m",
-	"grey":    "\033[38;5;244m",
-	"brown":   "\033[38;5;94m",
-	"darkred": "\033[38;5;88m",
-	"gold":    "\033[38;5;220m",
-	"silver":  "\033[38;5;7m",
-	"navy":    "\033[38;5;18m",
-	"teal":    "\033[38;5;30m",
-	"olive":   "\033[38;5;58m",
-	"lime":    "\033[38;5;10m",
-	"indigo":  "\033[38;5;54m",
-	"violet":  "\033[38;5;170m",
-	"maroon":  "\033[38;5;1m",
-	"beige":   "\033[38;5;230m",
-	"coral":   "\033[38;5;203m",
-	"crimson": "\033[38;5;160m",
-	"khaki":   "\033[38;5;185m",
+	// Additional common colors (extended set converted to standard web hex codes)
+	"orange":  "#ff8700",
+	"pink":    "#ff5faf",
+	"magenta": "#ff00ff",
+	"gray":    "#808080",
+	"grey":    "#808080",
+	"brown":   "#875f00",
+	"darkred": "#870000",
+	"gold":    "#ffd700",
+	"silver":  "#c0c0c0",
+	"navy":    "#000080",
+	"teal":    "#008080",
+	"olive":   "#808000",
+	"lime":    "#00ff00",
+	"indigo":  "#4b0082",
+	"violet":  "#ee82ee",
+	"maroon":  "#800000",
+	"beige":   "#f5f5dc",
+	"coral":   "#ff7f50",
+	"crimson": "#dc143c",
+	"khaki":   "#f0e68c",
 
-	// Utility codes
-	"default": "\033[0m",
-	"reset":   "\033[0m",
+	// Utility codes mapped to closing tags or standard text colors
+	"default": "</span>",
+	"reset":   "</span>",
 }
 
 // ── main entry point for color parsing ───────────────────────────────────── ⊃
 
 // ColorConvert routes the input color string to the appropriate parsing function
-// based on its prefix (#, rgb(, hsl() or plain text) and returns an ANSI escape sequence.
-// Logs an error and falls back to a terminal reset code if parsing fails.
+// based on its prefix (#, rgb(, hsl() or plain text) and returns an HTML opening span tag.
+// Logs an error and falls back to an empty string if parsing fails.
 func ColorConvert(s string) (string, error) {
-	if strings.ToLower(s) == "random" {
+	s = strings.ToLower(strings.ReplaceAll(s, " ", ""))
+
+	if s == "random" {
 		R, G, B := rand.Intn(256), rand.Intn(256), rand.Intn(256)
 		randomcolor := fmt.Sprintf("%d,%d,%d)", R, G, B)
 
 		for mean := (R + G + B) / 3; R+G+B < 120 || R+G+B > 650 || (math.Abs(float64(R-mean)) < 30 && math.Abs(float64(G-mean)) < 30 && math.Abs(float64(B-mean)) < 30); randomcolor, mean = fmt.Sprintf("%d,%d,%d)", R, G, B), (R+G+B)/3 {
-			fmt.Printf("\033[48;2;%d;%d;%dm We skipped this boring random color(%s!%s\n", R, G, B, randomcolor, ColorMap["reset"])
 			R, G, B = rand.Intn(256), rand.Intn(256), rand.Intn(256)
 		}
-		fmt.Printf("\033[48;2;%d;%d;%dm You picked a random color!! We will choose for you the color rgb(%s!%s\n", R, G, B, randomcolor, ColorMap["reset"])
 		return ColorRGB(randomcolor)
 	}
+
+	// Handle direct utility closure maps immediately
+	if s == "default" || s == "reset" {
+		return "</span>", nil
+	}
+
 	var result string
 	var err error
-	s = strings.ReplaceAll(s, " ", "")
 	if temp, ok := strings.CutPrefix(s, "#"); ok {
 		result, err = ColorHEX(temp)
 	} else if temp, ok := strings.CutPrefix(s, "rgb("); ok {
@@ -94,7 +99,7 @@ func ColorConvert(s string) (string, error) {
 
 	if err != nil {
 		slog.Error(err.Error(), "Skipping color", s)
-		return "\033[0m", err
+		return "", err
 	}
 	return result, err
 }
@@ -102,70 +107,66 @@ func ColorConvert(s string) (string, error) {
 // ── specific format color converters ─────────────────────────────────────── ⊃
 
 // ColorBasic looks up a plain text color name in the pre-defined ColorMap.
-// Returns the corresponding ANSI escape sequence, or a terminal reset sequence
-// along with an error if the color name is unrecognized.
+// Returns the corresponding HTML opening span tag.
 func ColorBasic(s string) (string, error) {
-	s = strings.ToLower(s)
-	result, ok := ColorMap[s]
+	hexVal, ok := ColorMap[s]
 	if !ok {
-		error := fmt.Errorf("Bad Format: Wrong Color Code = %s", s)
-		return "\033[0m", error
+		return "", fmt.Errorf("Bad Format: Wrong Color Name = %s", s)
 	}
 
-	return result, nil
+	// If it maps to a closing tag token directly
+	if hexVal == "</span>" {
+		return hexVal, nil
+	}
+
+	return fmt.Sprintf("<span style=\"color:%s\">", hexVal), nil
 }
 
-// ColorHEX converts a 3-character or 6-character hexadecimal color string into Truecolor ANSI format.
-// Validates the string length and parses the hexadecimal pairs into red, green, and blue integers.
+// ColorHEX validates and converts hexadecimal color strings into HTML style span components.
 func ColorHEX(s string) (string, error) {
 	if len(s) == 3 {
 		s = string([]byte{s[0], s[0], s[1], s[1], s[2], s[2]})
 	}
 
 	if len(s) != 6 {
-		return "\033[0m", fmt.Errorf("Bad Format: Wrong Color Code")
+		return "", fmt.Errorf("Bad Format: Wrong Color Code length")
 	}
 
-	// Parse and convert (to integer) the color components
-	r, errR := strconv.ParseInt(s[0:2], 16, 0)
-	g, errG := strconv.ParseInt(s[2:4], 16, 0)
-	b, errB := strconv.ParseInt(s[4:6], 16, 0)
+	// Validate hex characters by attempting to parse them
+	_, errR := strconv.ParseInt(s[0:2], 16, 0)
+	_, errG := strconv.ParseInt(s[2:4], 16, 0)
+	_, errB := strconv.ParseInt(s[4:6], 16, 0)
 
-	// Check for errors
 	if errR != nil || errG != nil || errB != nil {
-		return "\033[0m", fmt.Errorf("Bad Format: Wrong Color Code = #%s", s)
+		return "", fmt.Errorf("Bad Format: Wrong Color Code = #%s", s)
 	}
 
-	return fmt.Sprintf("\033[38;2;%d;%d;%dm", r, g, b), nil
+	return fmt.Sprintf("<span style=\"color:#%s\">", s), nil
 }
 
-// ColorRGB extracts and validates individual integer components from an RGB functional notation string.
-// Returns an error if any component falls outside the valid 8-bit channel range (0-255).
+// ColorRGB extracts integer components and generates inline color span markup.
 func ColorRGB(s string) (string, error) {
 	R, G, B, err := ThreeValuesSplit(s)
 	if err != nil || !(R >= 0 && R <= 255) || !(G >= 0 && G <= 255) || !(B >= 0 && B <= 255) {
-		error := fmt.Errorf("Bad Format: Wrong Color Code = %s", s)
-		return "\033[0m", error
+		return "", fmt.Errorf("Bad Format: Wrong Color Code = %s", s)
 	}
-	return fmt.Sprintf("\033[38;2;%d;%d;%dm", R, G, B), nil
+
+	return fmt.Sprintf("<span style=\"color:rgb(%d,%d,%d)\">", R, G, B), nil
 }
 
-// ColorHSL extracts HSL components from the input string, validates their operational boundaries,
-// converts the HSL values into the RGB color space, and structures the final Truecolor ANSI sequence.
+// ColorHSL extracts HSL numbers and generates standard web CSS functional span values.
 func ColorHSL(s string) (string, error) {
 	H, S, L, err := ThreeValuesSplit(strings.ReplaceAll(s, "%", ""))
 	if err != nil || !(H >= 0 && H <= 360) || !(S >= 0 && S <= 100) || !(L >= 0 && L <= 100) {
-		error := fmt.Errorf("Bad Format: Wrong Color Code = %s", s)
-		return "\033[0m", error
+		return "", fmt.Errorf("Bad Format: Wrong Color Code = %s", s)
 	}
-	r, g, b := hslToRgb(float64(H), float64(S)/100.0, float64(L)/100.0)
-	return fmt.Sprintf("\033[38;2;%d;%d;%dm", r, g, b), nil
+
+	return fmt.Sprintf("<span style=\"color:hsl(%d,%d%%,%d%%)\">", H, S, L), nil
 }
 
 // ── text processing and mathematical helper utilities ────────────────────── ⊃
 
-// ThreeValuesSplit strips the closing parenthesis from a comma-separated string, splits it into three sub-strings,
-// and parses each slice element into an integer representation, returning an error on structural mismatches.
+// ThreeValuesSplit parses the inner functional notation values.
 func ThreeValuesSplit(s string) (int, int, int, error) {
 	cleaned := strings.TrimSuffix(s, ")")
 	output := strings.SplitN(cleaned, ",", 3)
@@ -185,8 +186,7 @@ func ThreeValuesSplit(s string) (int, int, int, error) {
 	return nums[0], nums[1], nums[2], nil
 }
 
-// hslToRgb converts Hue, Saturation, and Lightness floating-point values into 8-bit RGB integers.
-// Uses an intermediary hue conversion process and handles achromatic cases where saturation is zero.
+// hslToRgb remains fully functional in background if you ever need to fall back to raw RGB calculations
 func hslToRgb(h, s, l float64) (int, int, int) {
 	var r, g, b float64
 
@@ -211,8 +211,6 @@ func hslToRgb(h, s, l float64) (int, int, int) {
 	return int(math.Round(r * 255)), int(math.Round(g * 255)), int(math.Round(b * 255))
 }
 
-// hueToRgb is a specialized mathematical utility function that calculates the channel contribution
-// for a single color dimension based on the relative position of the hue on the color wheel.
 func hueToRgb(p, q, t float64) float64 {
 	if t < 0 {
 		t += 1

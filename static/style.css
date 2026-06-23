@@ -454,6 +454,7 @@ footer.peek .line-title:hover .toparrow {
   justify-content: center;
   flex-grow: 1;
   align-items: center;
+  gap: 7px;
 }
 
 .checkbox-container-down {
@@ -643,7 +644,6 @@ footer.peek .line-title:hover .toparrow {
   margin-bottom: 0px;
   padding-top: 12px;
   padding-bottom: 6px;
-  /* Fixed: Replaced text-color with line-color */
   border: var(--line-color) solid 1px;
   display: flex;
   flex-direction: column;
@@ -656,62 +656,150 @@ footer.peek .line-title:hover .toparrow {
 .Colors-Container {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.colorField {
-  display: flex;
-  flex-direction: column;
   justify-content: center;
-  height: 10vh;
-  /* Fixed: Replaced white with line-color */
-  border: var(--line-color) dashed 1px;
-  margin: 5px;
-  padding: 5px;
+  align-items: center;
+  width: 100%;
 }
 
-.colorField>* {
-  flex: 1;
-  text-align: center;
-}
-
-/* Κρύβει το κοντέινερ όταν είναι collapsed */
 .row-collapsed .Colors-Container {
   display: none;
 }
 
-/* Flexbox για να είναι όλα σε μια οριζόντια γραμμή */
 .colors-scroll-wrapper {
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  /* Aligns items from left to right */
   align-items: center;
   gap: 10px;
   overflow-x: auto;
-  /* Ενεργοποίηση οριζόντιου scroll */
-  white-space: nowrap;
-  padding: 2px;
-  max-width: 100%;
-  /* Περιορισμός στο πλάτος της οθόνης */
-}
-
-/* Στυλ για το κάθε panel χρώματος */
-.color-panel {
-  display: inline-flex;
-  align-items: center;
-  background: #f0f0f0;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-/* Παράδειγμα στυλ για το drop-down μέσα στο panel */
-.color-select {
+  /* Allows explicit horizontal scrollbar track rendering */
+  overflow-y: hidden;
+  /* Strict lock preventing vertical overflow leaks entirely */
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid #aaa;
+  max-width: 100%;
+  height: 115px;
+  /* Height extended to prevent vertical layout scroll triggers */
+  box-sizing: border-box;
 }
 
-/* Το κουμπί "+" */
+/* Base class for your custom Outfit typography standard */
+.global-outfit-text {
+  font-family: "Outfit", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: inherit;
+}
+
+.colorForm {
+  width: 320px;
+  height: 95px;
+  flex-shrink: 0;
+  border: var(--line-color) solid 1px;
+  border-radius: 4px;
+  padding: 6px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.colorForm .colorSubstringInfo {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: calc(100% - 12px);
+  height: 42px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Primary text string container with massive text branding */
+.colorForm .substringInput {
+  font-family: "Outfit", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  font-size: 32px;
+  flex-grow: 1;
+  height: 100%;
+  resize: none;
+  box-sizing: border-box;
+  line-height: 1;
+  overflow: hidden;
+}
+
+/* Adjusting placeholder font styling context rules */
+.colorForm .substringInput::placeholder {
+  font-family: "Outfit", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  /* Setting your requested standard 18px text sizing */
+  line-height: 2;
+}
+
+.colorForm .checkbox-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.colorForm .sliders-block {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  width: 255px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.colorForm .slider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 10px;
+}
+
+.colorForm .slider-label {
+  font-size: 11px;
+  /* Keeping it tight to survive within 95px container limits */
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.colorForm input[type="range"] {
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+  height: 6px;
+  cursor: pointer;
+}
+
+/* Rainbow background specifically targeting the Hue input track line */
+.colorForm input[type="range"].c-hue {
+  -webkit-appearance: none;
+  background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+  border-radius: 3px;
+}
+
+.colorForm .preview-box {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 40px;
+  height: 34px;
+  border: var(--line-color) solid 1px;
+  border-radius: 3px;
+  background-color: hsl(180, 50%, 50%);
+}
+
 .add-btn {
   background-color: var(--accent2-color);
   color: #ffffff;
@@ -722,7 +810,6 @@ footer.peek .line-title:hover .toparrow {
   font-size: 25px;
   cursor: pointer;
   flex-shrink: 0;
-
   transition: transform 0.8s ease-in-out;
 }
 

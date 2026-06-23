@@ -32,7 +32,29 @@ function syncState() {
     if (submitBtn && realtimeToggle) { submitBtn.disabled = STATE.realtime; }
 }
 
+// Helper to gather modern dynamic color nodes list array context properties for Go structures 
+function captureCurrentColors() {
+    return Array.from(document.querySelectorAll('.colorForm')).map((form, index) => {
+        const checkbox = form.querySelector('.all-text-check');
+        const isAllChecked = checkbox ? checkbox.checked : false;
+
+        // Match the same logic as traditional POST form
+        let textValue = form.querySelector('.substringInput')?.value || "";
+        if (isAllChecked) {
+            textValue = "_ALL_TEXT_";
+        }
+
+        return {
+            num: index + 1,
+            color_code: form.querySelector('.hidden-hex')?.value || '#40bfbf',
+            substring: textValue
+        };
+    });
+}
+
+
 // Compact Fetch Request for typography settings and text input
+// Fixed: Includes the parsed colors array sequence block data inside json payload stringify data mapping
 function sendUpdate() {
     syncState();
 
@@ -40,10 +62,12 @@ function sendUpdate() {
     if (!STATE.realtime) { return; }
 
     const { font_wrap, font_align, active_font, realtime, user_text, max_chars } = STATE;
+    const colors = captureCurrentColors();
+
     fetch("/api/session-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ font_wrap, font_align, active_font, realtime, user_text, max_chars })
+        body: JSON.stringify({ font_wrap, font_align, active_font, realtime, user_text, max_chars, colors })
     })
         .then(r => r.json())
         .then(data => {
@@ -54,6 +78,7 @@ function sendUpdate() {
 }
 
 // Calculates maximum screen characters, prints to HTML input, and dispatches via fetch ONLY if realtime is active
+// Fixed: Inject colors array block state map parameters to secure synchronized updates on screen adjustments
 function sendDynamicMaxCharacters() {
     const outputElement = document.querySelector(".asciiOutput");
     const maxCharsInput = document.getElementById('max-chars-input');
@@ -83,15 +108,17 @@ function sendDynamicMaxCharacters() {
         if (!STATE.realtime) { return; }
 
         const { font_wrap, font_align, active_font, realtime, user_text } = STATE;
+        const colors = captureCurrentColors();
+
         fetch("/api/session-state", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ font_wrap, font_align, active_font, realtime, user_text, max_chars: maxCharacters }),
+            body: JSON.stringify({ font_wrap, font_align, active_font, realtime, user_text, max_chars: maxCharacters, colors }),
         })
             .then(response => response.json())
             .then(data => {
                 const out = document.querySelector('.asciiOutput');
-                if (out && data.output !== undefined) { out.textContent = data.output; }
+                if (out && data.Output !== undefined) { out.innerHTML = data.Output; }
             })
             .catch(error => console.error("Error sending characters to Go:", error));
     }
@@ -134,6 +161,22 @@ window.addEventListener('load', () => {
         textarea.addEventListener('input', () => {
             clearTimeout(debounce);
             debounce = setTimeout(sendUpdate, 250);
+        });
+    }
+
+    // Dynamic color block inputs tracking to pipeline changes instantly when realtime state operations are live
+    const dynamicColorsTrackContainer = document.getElementById('colors-list');
+    if (dynamicColorsTrackContainer) {
+        dynamicColorsTrackContainer.addEventListener('input', () => {
+            if (STATE.realtime) {
+                clearTimeout(debounce);
+                debounce = setTimeout(sendUpdate, 250);
+            }
+        });
+        dynamicColorsTrackContainer.addEventListener('change', () => {
+            if (STATE.realtime) {
+                sendUpdate();
+            }
         });
     }
 

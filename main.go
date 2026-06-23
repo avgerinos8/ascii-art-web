@@ -60,14 +60,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Intercept traditional Form POST submissions
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err == nil {
-			fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s\n",
-				r.FormValue("userText"),
-				r.FormValue("FontWrap"),
-				r.FormValue("Realtime"),
-				r.FormValue("FontAlign"),
-				r.FormValue("font"),
-				r.FormValue("max_chars"),
-			)
 
 			// Populate our local data structures dynamically
 			localData.UserText = r.FormValue("userText")
@@ -84,6 +76,68 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
 				w.WriteHeader(http.StatusBadRequest)
 				return
+			}
+
+			// Extract the parallel form arrays submitted from the DOM color blocks
+			formSubstrings := r.PostForm["substring[]"]
+			formHexCodes := r.PostForm["hexcolorcode[]"]
+
+			var colors []arghandler.ColorInfo
+			colorCounter := 1
+
+			// Loop through arrays using the substrings count length as our limit boundary
+			for i := 0; i < len(formSubstrings); i++ {
+				subStr := formSubstrings[i]
+				hexStr := ""
+				if i < len(formHexCodes) {
+					hexStr = formHexCodes[i]
+				}
+
+				// If JS flagged this form element via readOnly string, expand it to all text lines
+				if subStr == "_ALL_TEXT_" {
+					for _, textLine := range localConfig.Text {
+						// Skip empty lines to prevent unnecessary color processing overhead
+						if textLine == "" {
+							continue
+						}
+						colors = append(colors, arghandler.ColorInfo{
+							Num:       colorCounter,
+							ColorCode: hexStr,
+							Substring: textLine, // Target the full contents of this row line directly
+						})
+						colorCounter++
+					}
+				} else {
+					// Standard explicit single substring mapping process branch
+					colors = append(colors, arghandler.ColorInfo{
+						Num:       colorCounter,
+						ColorCode: hexStr,
+						Substring: subStr,
+					})
+					colorCounter++
+				}
+			}
+
+			// Assign parsed dynamic arrays right into your Config object context state
+			localConfig.Color = colors
+			localConfig.SortColors()
+
+			// Enhanced Debug Logging for Form POST
+			fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s | Colors Count: %d\n",
+				r.FormValue("userText"),
+				r.FormValue("FontWrap"),
+				r.FormValue("Realtime"),
+				r.FormValue("FontAlign"),
+				r.FormValue("font"),
+				r.FormValue("max_chars"),
+				len(localConfig.Color),
+			)
+			if len(localConfig.Color) > 0 {
+				fmt.Println("--- Sorted Colors Detail (POST) ---")
+				for _, c := range localConfig.Color {
+					fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+				}
+				fmt.Println("-----------------------------------")
 			}
 
 			f := font.CreateFont(localConfig)
@@ -115,28 +169,21 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Mirror anonymous schema structure containing explicit slice mappings for colors array JSON data
 	var incoming struct {
-		FontWrap   string `json:"font_wrap"`
-		FontAlign  string `json:"font_align"`
-		ActiveFont string `json:"active_font"`
-		Realtime   bool   `json:"realtime"`
-		UserText   string `json:"user_text"`
-		MaxChars   int    `json:"max_chars"`
+		FontWrap   string                 `json:"font_wrap"`
+		FontAlign  string                 `json:"font_align"`
+		ActiveFont string                 `json:"active_font"`
+		Realtime   bool                   `json:"realtime"`
+		UserText   string                 `json:"user_text"`
+		MaxChars   int                    `json:"max_chars"`
+		Colors     []arghandler.ColorInfo `json:"colors"` // Bound directly to external arghandler package struct
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("[Fetch JSON Log] UserText: %s | FontWrap: %s | Realtime: %t | FontAlign: %s | ActiveFont: %s | MaxChars: %d\n",
-		incoming.UserText,
-		incoming.FontWrap,
-		incoming.Realtime,
-		incoming.FontAlign,
-		incoming.ActiveFont,
-		incoming.MaxChars,
-	)
 
 	// Create isolated metrics for this specific async transaction
 	localData := PageData{
@@ -149,9 +196,63 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	localConfig.Align = incoming.FontAlign
 	localConfig.Font = incoming.ActiveFont
 	_ = incoming.Realtime
+
+	// Normalize text input first so localConfig.Text ([]string) gets populated with rows
 	localConfig.NormalizeInput(incoming.UserText)
 	localConfig.PageCharacterWidth = incoming.MaxChars
 	localData.UserText = incoming.UserText
+
+	var finalColors []arghandler.ColorInfo
+	colorCounter := 1
+
+	// Loop through the incoming JSON colors array sent by fetch.js
+	for _, incomingColor := range incoming.Colors {
+		// FIXED: Check for explicit _ALL_TEXT_ flag instead of empty string
+		if incomingColor.Substring == "_ALL_TEXT_" {
+			for _, textLine := range localConfig.Text {
+				if textLine == "" {
+					continue
+				}
+				finalColors = append(finalColors, arghandler.ColorInfo{
+					Num:       colorCounter,
+					ColorCode: incomingColor.ColorCode,
+					Substring: textLine,
+				})
+				colorCounter++
+			}
+		} else {
+			// Standard single substring matching pass execution
+			finalColors = append(finalColors, arghandler.ColorInfo{
+				Num:       colorCounter,
+				ColorCode: incomingColor.ColorCode,
+				Substring: incomingColor.Substring,
+			})
+			colorCounter++
+		}
+	}
+
+	// Pass the expanded color slices configuration down into internal operational config states
+	localConfig.Color = finalColors
+
+	localConfig.SortColors()
+
+	// Enhanced Debug Logging for Fetch JSON
+	fmt.Printf("[Fetch JSON Log] UserText: %s | FontWrap: %s | Realtime: %t | FontAlign: %s | ActiveFont: %s | MaxChars: %d | Expanded Colors Count: %d\n",
+		incoming.UserText,
+		incoming.FontWrap,
+		incoming.Realtime,
+		incoming.FontAlign,
+		incoming.ActiveFont,
+		incoming.MaxChars,
+		len(localConfig.Color),
+	)
+	if len(localConfig.Color) > 0 {
+		fmt.Println("--- Sorted Colors Detail (FETCH) ---")
+		for _, c := range localConfig.Color {
+			fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+		}
+		fmt.Println("------------------------------------")
+	}
 
 	f := font.CreateFont(localConfig)
 	f.RenderResult()

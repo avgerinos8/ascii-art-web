@@ -1,23 +1,22 @@
 package font
 
 import (
+	"asciiartweb/internal/color"
 	"fmt"
 	"log/slog"
 	"strings"
-
-	color "asciiartweb/internal/color"
 )
 
 // ── Global Variables ───────────────────────────────────────────────────────
 
-// Reset is a constant that returns the terminal formatting to its default state.
-var Reset = "\033[0m"
+// Reset closes the currently open HTML span formatting container tag.
+var Reset = "</span>"
 
-// ── Struct ──────────────────────────────────────────────────────────────────
+// ── Structs ─────────────────────────────────────────────────────────────────
 
 type Token struct {
-	Value      rune   // 'h' ή ' '
-	ColorValue string // "" (no color) ή "\033[0;31m"
+	Value      rune   // e.g., 'h' or ' '
+	ColorValue string // "" (no color) or "<span style=\"color:#1ae6e6\">"
 }
 
 type Line struct {
@@ -273,32 +272,46 @@ func (f *Font) alignLine(line Line) []Token {
 	}
 	return Aligned
 }
-
 func (f *Font) toAscii(input []Token) string {
 	var result strings.Builder
 
 	for i := 0; i < 8; i++ {
-		// Since we append Reset at the end of every row,
-		// the terminal always starts the next row in a Reset state.
-		lastColor := Reset
+		isColorActive := false
+		lastColor := ""
 
 		for _, t := range input {
-			// Resolve the actual ANSI string we want for this token
 			currentColor := t.ColorValue
-			if currentColor == "" {
-				currentColor = Reset
+
+			// Safety check: If the token somehow contains the closing tag itself,
+			// treat it as an instruction to clear/reset the color state.
+			if currentColor == "</span>" || currentColor == Reset {
+				currentColor = ""
 			}
 
-			// If the required color is different from the terminal's current state, emit it
 			if currentColor != lastColor {
-				result.WriteString(currentColor)
+				// 1. If a style was active, we must close it first
+				if isColorActive {
+					result.WriteString(Reset)
+					isColorActive = false
+				}
+
+				// 2. Open a new span ONLY if the current token actually wants a color
+				if currentColor != "" {
+					result.WriteString(currentColor)
+					isColorActive = true
+				}
+
 				lastColor = currentColor
 			}
 
 			result.WriteString(f.Banner[t.Value][i])
 		}
-		// Always clear color at the end of the line to prevent trailing bleed
-		result.WriteString(Reset + "\n")
+
+		// Hard close at the end of the line
+		if isColorActive {
+			result.WriteString(Reset)
+		}
+		result.WriteString("\n")
 	}
 	return result.String()
 }
