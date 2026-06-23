@@ -7,57 +7,75 @@ function initScrollSyncAndLayout() {
 
     if (!topWrapper || !asciiWrapper || !asciiOutput) return;
 
-    // 1. Συγχρονισμός του πλάτους για την πάνω μπάρα scroll
+    // 1. Synchronize fake top scrollbar content width with actual layout width
     function syncWidth() {
-        topFakeContent.style.width = asciiOutput.scrollWidth + 'px';
+        // Run inside requestAnimationFrame to align execution with the next browser layout repaint
+        requestAnimationFrame(() => {
+            if (topFakeContent && asciiOutput) {
+                const actualWidth = asciiOutput.scrollWidth;
+                topFakeContent.style.width = actualWidth + 'px';
+            }
+        });
     }
 
-    syncWidth();
+    // 2. Track background fetch operations using asynchronous execution loops
+    // MutationObserver catches direct manipulations onto innerHTML or textContent
+    const contentObserver = new MutationObserver(() => {
+        syncWidth();
+        // Double-check 50ms later in case custom typography rendering updates layout bounds slowly
+        setTimeout(syncWidth, 50);
+    });
+    contentObserver.observe(asciiOutput, { childList: true, characterData: true, subtree: true });
+
+    // ResizeObserver tracks explicit shifts on container layout metrics
+    const resizeObserver = new ResizeObserver(() => {
+        syncWidth();
+    });
+    resizeObserver.observe(asciiOutput);
+
+    // Force evaluation execution cycles to wait until system or network typography formats load completely
+    if (document.fonts) {
+        document.fonts.ready.then(() => {
+            syncWidth();
+            setTimeout(syncWidth, 100);
+        });
+    } else {
+        syncWidth();
+    }
+
     window.addEventListener('resize', syncWidth);
 
     const sizeInput = document.querySelector('input[name="BgSize"]');
     if (sizeInput) sizeInput.addEventListener('input', syncWidth);
 
-    // 2. Live Υπολογισμός του ύψους του Footer και inject στο CSS
-    // 2. Live Υπολογισμός του ύψους του Footer και inject στο CSS
+    // 3. Live calculations rendering visible footer dimensional structures directly into CSS DOM targets
     if (footer) {
-        // Συνάρτηση που υπολογίζει το πραγματικό ορατό ύψος του footer στην οθόνη
         function updateFooterHeight() {
-            // Παίρνουμε τη θέση του footer σε σχέση με το viewport
             const rect = footer.getBoundingClientRect();
-            // Το ορατό ύψος είναι το ύψος της οθόνης μείον το σημείο που ξεκινάει το footer
             const visibleHeight = window.innerHeight - rect.top;
-
-            // Ενημερώνουμε τη CSS variable live
             document.documentElement.style.setProperty('--footer-height', visibleHeight + 'px');
         }
 
-        // Watch για αλλαγές στο μέγεθος του footer
         const footerObserver = new ResizeObserver(() => {
             updateFooterHeight();
         });
         footerObserver.observe(footer);
 
-        // Επειδή το CSS animation (transition: transform 1.2s) παίρνει χρόνο να ολοκληρωθεί,
-        // τρέχουμε ένα loop κατά τη διάρκεια του animation για να μεγαλώνει ο χώρος ομαλά live!
         window.addEventListener('click', () => {
-            // Μόλις ο χρήστης κάνει κλικ (π.χ. στο toggle), τρέχουμε το update για τα επόμενα 1.2 δευτερόλεπτα
             let startTime = Date.now();
             function animateHeight() {
                 updateFooterHeight();
-                if (Date.now() - startTime < 1300) { // 1300ms για να καλύψει το transition των 1.2s
+                if (Date.now() - startTime < 1300) {
                     requestAnimationFrame(animateHeight);
                 }
             }
             requestAnimationFrame(animateHeight);
         });
 
-        // Αρχικός υπολογισμός στο load
         updateFooterHeight();
     }
 
-
-    // 3. Αμφίδρομος συγχρονισμός οριζόντιου Scroll
+    // 4. Two-way operational tracking loop handling global horizontal page scrolls
     let isSyncingTop = false;
     let isSyncingAscii = false;
 
@@ -78,5 +96,5 @@ function initScrollSyncAndLayout() {
     });
 }
 
-// Εκκίνηση layout
+// Global invocation sequence triggered automatically when asset compilation loops finish loading
 window.addEventListener('load', initScrollSyncAndLayout);
