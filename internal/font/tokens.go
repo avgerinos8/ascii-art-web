@@ -10,7 +10,15 @@ import (
 // ── Global Variables ───────────────────────────────────────────────────────
 
 // Reset closes the currently open HTML span formatting container tag.
-var Reset = "</span>"
+// NOTE: this must stay a constant. It was previously a package-level `var` that
+// got mutated to "" whenever a request had no colors (see removed code below).
+// Since Go's http server runs every request in its own goroutine, that shared
+// mutable state was a data race: one goroutine's "no colors" request could zero
+// out Reset for every OTHER in-flight goroutine's colored request, permanently
+// (nothing ever set it back). The result: closing tags silently stopped being
+// written, so every later <span style="color:..."> opened without ever closing,
+// and the browser's HTML parser nested them inside each other trying to recover.
+const Reset = "</span>"
 
 // ── Structs ─────────────────────────────────────────────────────────────────
 
@@ -26,11 +34,6 @@ type Line struct {
 }
 
 func (f *Font) ComplexPrintLines(text string) {
-	// If no color is selected
-	if len(f.Con.Color) < 1 {
-		Reset = ""
-	}
-
 	// STEP A : TOKENIZE (words, spaces)
 	Characters := tokenize(text)
 
