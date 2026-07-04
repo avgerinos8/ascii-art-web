@@ -33,6 +33,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
 	mux.HandleFunc("/api/session-state", SessionHandler)
+
+	mux.HandleFunc("/ascii-art", Handler)
 	mux.HandleFunc("/", Handler)
 
 	fmt.Println("Server ready. Use http://localhost:8080")
@@ -43,7 +45,7 @@ func main() {
 func Handler(w http.ResponseWriter, r *http.Request) {
 	// Secure routing definitions for both endpoints mapped to this handler
 	if r.URL.Path != "/" && r.URL.Path != "/ascii-art" {
-		w.WriteHeader(http.StatusNotFound)
+		http.NotFound(w, r)
 		return
 	}
 

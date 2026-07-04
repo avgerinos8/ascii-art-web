@@ -25,7 +25,7 @@
 To spin up the web server locally, navigate to the project directory and execute:
 
 ```bash
-go run .
+go run ./cmd/main.go
 ```
 
 Once the server initializes, open your browser and navigate to:
