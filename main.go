@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var PageWidth = 80
@@ -36,6 +37,9 @@ func main() {
 
 	mux.HandleFunc("/ascii-art", Handler)
 	mux.HandleFunc("/", Handler)
+
+	fmt.Println("Web server starting. Please wait...")
+	time.Sleep(3 * time.Second)
 
 	fmt.Println("Server ready. Use http://localhost:8080")
 	http.ListenAndServe(":8080", mux)
