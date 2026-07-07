@@ -27,12 +27,12 @@ function saveAllToStorage() {
 }
 
 // Intercepts DOM values and injects stored properties, checking for manual reloads
+// ── main ────────────────────────────────────────────────────────────────────⊃
 function restoreAllFromStorage() {
-    // Check if the page load was triggered by a manual refresh (F5, Ctrl+F5, Reload button)
     const navigationEntry = performance.getEntriesByType('navigation')[0];
     if (navigationEntry && navigationEntry.type === 'reload') {
         localStorage.removeItem(STORAGE_KEY);
-        return; // Halt restoration to allow the page to reset to its native defaults
+        return;
     }
 
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -55,9 +55,12 @@ function restoreAllFromStorage() {
         const realtimeToggle = document.getElementById('realtime-toggle');
         if (realtimeToggle && state.realtime !== undefined) realtimeToggle.checked = state.realtime;
 
+        // CRITICAL FIX: Only overwrite DOM if elements exist, and safely validate state properties
         ['BgSize', 'BgDistance', 'BreatheSpeed', 'Noise', 'BreatheDepth'].forEach(name => {
             const el = document.querySelector(`input[name="${name}"]`);
-            if (el && state[name] !== undefined) el.value = state[name];
+            if (el && state[name] !== undefined) {
+                el.value = state[name];
+            }
         });
     } catch (e) {
         console.error("Error parsing storage targets:", e);

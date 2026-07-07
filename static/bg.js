@@ -244,6 +244,7 @@ function setupStateListeners() {
     }
 }
 
+// ── main ────────────────────────────────────────────────────────────────────⊃
 function init() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -254,20 +255,36 @@ function init() {
     const speedInput = document.querySelector('input[name="BreatheSpeed"]');
     const depthInput = document.querySelector('input[name="BreatheDepth"]');
 
-    if (sizeInput) BGSIZE = parseFloat(sizeInput.value);
-    if (distInput) BgDistance = parseFloat(distInput.value);
-    if (noiseInput) NOISE = parseFloat(noiseInput.value);
-    if (speedInput) BREATHE_SPEED = parseFloat(speedInput.value);
-    if (depthInput) BREATHE_DEPTH = parseFloat(depthInput.value);
+    // Try to load saved settings from persistence storage if DOM inputs are missing (like in error.html)
+    let savedState = {};
+    try {
+        const raw = localStorage.getItem('ascii_web_settings');
+        if (raw) savedState = JSON.parse(raw);
+    } catch (e) {
+        console.error("Failed to parse storage inside bg.js", e);
+    }
+
+    // 1st choice: DOM Input | 2nd choice: LocalStorage | 3rd choice: Hardcoded Index HTML Defaults
+    BGSIZE = sizeInput ? parseFloat(sizeInput.value) : (savedState.BgSize !== undefined ? parseFloat(savedState.BgSize) : 1.5);
+    BgDistance = distInput ? parseFloat(distInput.value) : (savedState.BgDistance !== undefined ? parseFloat(savedState.BgDistance) : 1.0);
+    NOISE = noiseInput ? parseFloat(noiseInput.value) : (savedState.Noise !== undefined ? parseFloat(savedState.Noise) : 0.30);
+    BREATHE_SPEED = speedInput ? parseFloat(speedInput.value) : (savedState.BreatheSpeed !== undefined ? parseFloat(savedState.BreatheSpeed) : 0.0004);
+    BREATHE_DEPTH = depthInput ? parseFloat(depthInput.value) : (savedState.BreatheDepth !== undefined ? parseFloat(savedState.BreatheDepth) : 0.25);
 
     FS = 16 * BGSIZE;
     LINE_HEIGHT = FS * BgDistance;
     CW = FS * 0.6;
 
-    syncVignetteAlignment(true); // Parse initial DOM state accurately on startup (forced)
+    // Retry theme fetch after a small macro-task delay to handle CSS variable bindings on error layouts
+    setTimeout(() => {
+        currentHex = getActiveThemeColor();
+        rgbColor = hexToRgb(currentHex);
+    }, 50);
+
+    syncVignetteAlignment(true);
     buildGrid();
     setupSliderListeners();
-    setupStateListeners();   // Hook into UI changes
+    setupStateListeners();
     requestAnimationFrame(draw);
 }
 

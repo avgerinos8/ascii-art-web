@@ -86,14 +86,17 @@ addColorBtn.addEventListener('click', () => {
     const colorDiv = document.createElement('div');
     colorDiv.className = 'colorForm';
 
-    // FIXED: Generated a dynamic random integer between 0 and 360 for Hue channel spectrum
+    // FIXED: Restored missing randomHue declaration (0 to 360)
     const randomHue = Math.floor(Math.random() * 361);
 
-    // FIXED: Restored Saturation back to the requested 80% standard value configuration
-    const defaultSaturation = 80;
+    // NEW: Dynamic random integer between 50 and 100 for Saturation
+    const randomSaturation = Math.floor(Math.random() * 41) + 60;
 
-    // FIXED: Calculate initial matching Hex Code dynamically based on the random hue variable
-    const initialHex = hslToHex(randomHue, defaultSaturation, 50);
+    // NEW: Dynamic random integer between 35 and 65 for Lightness
+    const randomLightness = Math.floor(Math.random() * 31) + 35;
+
+    // FIXED: Calculate initial matching Hex Code dynamically based on all 3 random variables
+    const initialHex = hslToHex(randomHue, randomSaturation, randomLightness);
 
     colorDiv.innerHTML = `
     <div class="colorSubstringInfo">
@@ -110,11 +113,12 @@ addColorBtn.addEventListener('click', () => {
         <input type="range" class="c-hue" min="0" max="360" value="${randomHue}">
       </div>
       <div class="slider-row">
-        <!-- FIXED: Reverted back to the solid 80% saturation default property channel -->
-        <input type="range" class="c-sat" min="0" max="100" value="${defaultSaturation}">
+        <!-- FIXED: Bound value directly to the generated randomSaturation variable -->
+        <input type="range" class="c-sat" min="0" max="100" value="${randomSaturation}">
       </div>
       <div class="slider-row">
-        <input type="range" class="c-light" min="0" max="100" value="50">
+        <!-- FIXED: Bound value directly to the generated randomLightness variable -->
+        <input type="range" class="c-light" min="0" max="100" value="${randomLightness}">
       </div>
     </div>
 

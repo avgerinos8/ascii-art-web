@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+// EnableLogs controls whether console debug logging is turned on or off globally
+var EnableLogs bool = true
+var Bypass400 bool = false
+
 var PageWidth = 80
 
 // PageData maps out template variable configurations injected straight into index.html
@@ -22,6 +26,13 @@ type PageData struct {
 	InitInput string
 	Output    template.HTML
 	UserText  string
+}
+
+// ErrorData holds information for rendering the error template
+type ErrorData struct {
+	StatusCode int
+	StatusText string
+	Message    string
 }
 
 var fonts []string = []string{"standard", "shadow", "thinkertoy", "extra", "blody", "stylish"}
@@ -49,7 +60,7 @@ func main() {
 func Handler(w http.ResponseWriter, r *http.Request) {
 	// Secure routing definitions for both endpoints mapped to this handler
 	if r.URL.Path != "/" && r.URL.Path != "/ascii-art" {
-		http.NotFound(w, r)
+		renderError(w, http.StatusNotFound, "The requested endpoint does not exist")
 		return
 	}
 
@@ -67,20 +78,26 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err == nil {
 
+			var err error
 			// Populate our local data structures dynamically
 			localData.UserText = r.FormValue("userText")
-			localConfig.NormalizeInput(r.FormValue("userText"))
+			err = localConfig.NormalizeInput(r.FormValue("userText"))
+			if err != nil && !Bypass400 {
+				renderError(w, http.StatusBadRequest, err.Error())
+				return
+			}
 			localConfig.Output = r.FormValue("FontWrap")
 			_ = r.FormValue("Realtime")
 			localConfig.Align = r.FormValue("FontAlign")
 			localConfig.Font = r.FormValue("font")
 
-			var err error
 			localConfig.PageCharacterWidth, err = strconv.Atoi(r.FormValue("max_chars"))
 			if err != nil {
 				localConfig.PageCharacterWidth = 80
-				fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
-				w.WriteHeader(http.StatusBadRequest)
+				if EnableLogs {
+					fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
+				}
+				renderError(w, http.StatusBadRequest, "Invalid max_chars parameter value")
 				return
 			}
 
@@ -129,21 +146,23 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			localConfig.SortColors()
 
 			// Enhanced Debug Logging for Form POST
-			fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s | Colors Count: %d\n",
-				r.FormValue("userText"),
-				r.FormValue("FontWrap"),
-				r.FormValue("Realtime"),
-				r.FormValue("FontAlign"),
-				r.FormValue("font"),
-				r.FormValue("max_chars"),
-				len(localConfig.Color),
-			)
-			if len(localConfig.Color) > 0 {
-				fmt.Println("--- Sorted Colors Detail (POST) ---")
-				for _, c := range localConfig.Color {
-					fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+			if EnableLogs {
+				fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s | Colors Count: %d\n",
+					r.FormValue("userText"),
+					r.FormValue("FontWrap"),
+					r.FormValue("Realtime"),
+					r.FormValue("FontAlign"),
+					r.FormValue("font"),
+					r.FormValue("max_chars"),
+					len(localConfig.Color),
+				)
+				if len(localConfig.Color) > 0 {
+					fmt.Println("--- Sorted Colors Detail (POST) ---")
+					for _, c := range localConfig.Color {
+						fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+					}
+					fmt.Println("-----------------------------------")
 				}
-				fmt.Println("-----------------------------------")
 			}
 
 			f := font.CreateFont(localConfig)
@@ -154,13 +173,16 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			localData.Output = template.HTML(rawHTML)
+		} else {
+			renderError(w, http.StatusBadRequest, "Failed to parse submitted form data")
+			return
 		}
 	}
 
 	// Parse the HTML file from disk
 	templ, err := template.ParseFiles("templates/index.html")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		renderError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -171,7 +193,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 // SessionHandler unpacks asynchronous dynamic JSON requests submitted by Javascript Fetch
 func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		renderError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -187,7 +209,7 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		renderError(w, http.StatusBadRequest, "Bad request body sequence")
 		return
 	}
 
@@ -203,8 +225,9 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	localConfig.Font = incoming.ActiveFont
 	_ = incoming.Realtime
 
-	// Normalize text input first so localConfig.Text ([]string) gets populated with rows
-	localConfig.NormalizeInput(incoming.UserText)
+	// Normalize text input first so localConfig.Text ([]string) gets populated with rows (IGNORING ERROR)
+	_ = localConfig.NormalizeInput(incoming.UserText)
+
 	localConfig.PageCharacterWidth = incoming.MaxChars
 	localData.UserText = incoming.UserText
 
@@ -213,7 +236,7 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Loop through the incoming JSON colors array sent by fetch.js
 	for _, incomingColor := range incoming.Colors {
-		// FIXED: Check for explicit _ALL_TEXT_ flag instead of empty string
+		// CHECK: Check for explicit _ALL_TEXT_ flag instead of empty string
 		if incomingColor.Substring == "_ALL_TEXT_" {
 			for _, textLine := range localConfig.Text {
 				if textLine == "" {
@@ -243,21 +266,23 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	localConfig.SortColors()
 
 	// Enhanced Debug Logging for Fetch JSON
-	fmt.Printf("[Fetch JSON Log] UserText: %s | FontWrap: %s | Realtime: %t | FontAlign: %s | ActiveFont: %s | MaxChars: %d | Expanded Colors Count: %d\n",
-		incoming.UserText,
-		incoming.FontWrap,
-		incoming.Realtime,
-		incoming.FontAlign,
-		incoming.ActiveFont,
-		incoming.MaxChars,
-		len(localConfig.Color),
-	)
-	if len(localConfig.Color) > 0 {
-		fmt.Println("--- Sorted Colors Detail (FETCH) ---")
-		for _, c := range localConfig.Color {
-			fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+	if EnableLogs {
+		fmt.Printf("[Fetch JSON Log] UserText: %s | FontWrap: %s | Realtime: %t | FontAlign: %s | ActiveFont: %s | MaxChars: %d | Expanded Colors Count: %d\n",
+			incoming.UserText,
+			incoming.FontWrap,
+			incoming.Realtime,
+			incoming.FontAlign,
+			incoming.ActiveFont,
+			incoming.MaxChars,
+			len(localConfig.Color),
+		)
+		if len(localConfig.Color) > 0 {
+			fmt.Println("--- Sorted Colors Detail (FETCH) ---")
+			for _, c := range localConfig.Color {
+				fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
+			}
+			fmt.Println("------------------------------------")
 		}
-		fmt.Println("------------------------------------")
 	}
 
 	f := font.CreateFont(localConfig)
@@ -271,4 +296,24 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(localData)
+}
+
+// renderError handles parsing and executing the custom error page
+func renderError(w http.ResponseWriter, statusCode int, message string) {
+	w.WriteHeader(statusCode)
+
+	tmpl, err := template.ParseFiles("./templates/error.html")
+	if err != nil {
+		// Fallback if the error template itself is missing or broken
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := ErrorData{
+		StatusCode: statusCode,
+		StatusText: http.StatusText(statusCode),
+		Message:    message,
+	}
+
+	tmpl.Execute(w, data)
 }

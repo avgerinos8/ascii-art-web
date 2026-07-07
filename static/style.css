@@ -579,7 +579,7 @@ footer.peek .line-title:hover .toparrow {
   margin-top: 2px;
   flex-shrink: 0;
   background-color: color-mix(in srgb, var(--text-color) 20%, transparent);
-  border: var(--line-color) dashed 1px;
+  border: var(--line-color) solid 1px;
   border-radius: 0px;
   padding: 2px;
   box-sizing: border-box;

@@ -2,6 +2,7 @@ package arghandler
 
 import (
 	normalize "asciiartweb/internal/normalize"
+	"fmt"
 	"sort"
 )
 
@@ -28,9 +29,15 @@ func NewConfig() *Config {
 	return c
 }
 
-func (c *Config) NormalizeInput(input string) {
-	input, _ = normalize.NonPrintables(input)
+func (c *Config) NormalizeInput(input string) error {
+	var nonsupported string
+	input, nonsupported = normalize.NonPrintables(input)
 	c.Text = normalize.TabsNewLines(input)
+	if len(nonsupported) != 0 {
+		return fmt.Errorf("The following characters are not supported: %s", nonsupported)
+	}
+
+	return nil
 }
 
 // SortColors orders the colors slice by substring length descending.
