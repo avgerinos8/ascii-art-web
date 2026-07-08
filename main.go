@@ -34,8 +34,6 @@ type ErrorData struct {
 	Message    string
 }
 
-var fonts []string = []string{"standard", "shadow", "thinkertoy", "extra", "blody", "stylish"}
-
 // Entrypoint configuration routing all endpoints
 func main() {
 	mux := http.NewServeMux()
