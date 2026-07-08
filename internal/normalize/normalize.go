@@ -13,6 +13,8 @@ import (
 // It logs the changes made and returns a slice of strings split by newlines.
 func NonPrintables(s string) (string, string) {
 
+	s = strings.ReplaceAll(s, "\r", "")
+
 	var nonSupported strings.Builder
 	var cleaned strings.Builder
 
