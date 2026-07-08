@@ -18,10 +18,11 @@ import (
 // and the final slice of strings to be printed.
 
 type Font struct {
-	Con         *arghandler.Config
-	Banner      map[rune]([]string)
-	BannerWidth map[rune](int)
-	FinalResult []string
+	Con          *arghandler.Config
+	Banner       map[rune]([]string)
+	BannerWidth  map[rune](int)
+	FinalResult  []string
+	SimpleResult []string
 }
 
 // ── Functions ──────────────────────────────────────────────────────────────
@@ -98,16 +99,12 @@ func (f *Font) CountBannerWidth() {
 // RenderResult processes the input text, handles word-wrapping based on
 // terminal width, and populates the finalresult slice with ASCII art lines.
 func (f *Font) RenderResult() {
-	fileOutput := false
-	// Iterate over the input text
-	if fileOutput {
-		for _, textToBePrinted := range f.Con.Text {
-			f.SimplePrintLines(textToBePrinted) // simple method for FILE output WITHOUT colors, alignment
-		}
-	} else {
-		for _, textToBePrinted := range f.Con.Text {
-			f.ComplexPrintLines(textToBePrinted) // complex method for CONSOLE output WITH colors, alignment, etc
-		}
+	// RUN BOTH simple AND complex METHODS
+	for _, textToBePrinted := range f.Con.Text {
+		f.SimplePrintLines(textToBePrinted) // simple method for FILE output WITHOUT colors, alignment
+	}
+	for _, textToBePrinted := range f.Con.Text {
+		f.ComplexPrintLines(textToBePrinted) // complex method for CONSOLE output WITH colors, alignment, etc
 	}
 }
 
@@ -120,7 +117,7 @@ func (f *Font) SimplePrintLines(text string) {
 		result += "\n"
 	}
 	if result != "" {
-		f.FinalResult = append(f.FinalResult, result)
+		f.SimpleResult = append(f.SimpleResult, result)
 	}
 }
 

@@ -1,5 +1,3 @@
-// ── main ────────────────────────────────────────────────────────────────────⊃
-
 package main
 
 import (
@@ -10,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -45,6 +44,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
 	mux.HandleFunc("/api/session-state", SessionHandler)
+	mux.HandleFunc("/export", ExportHandler)
+	mux.HandleFunc("/api/copy", CopyHandler)
 
 	mux.HandleFunc("/ascii-art", Handler)
 	mux.HandleFunc("/", Handler)
@@ -72,111 +73,21 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		UserText:  "",
 		Output:    "",
 	}
-	localConfig := arghandler.NewConfig()
 
 	// Intercept traditional Form POST submissions
 	if r.Method == http.MethodPost {
-		if err := r.ParseForm(); err == nil {
-
-			var err error
-			// Populate our local data structures dynamically
-			localData.UserText = r.FormValue("userText")
-			err = localConfig.NormalizeInput(r.FormValue("userText"))
-			if err != nil && !Bypass400 {
-				renderError(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			localConfig.Output = r.FormValue("FontWrap")
-			_ = r.FormValue("Realtime")
-			localConfig.Align = r.FormValue("FontAlign")
-			localConfig.Font = r.FormValue("font")
-
-			localConfig.PageCharacterWidth, err = strconv.Atoi(r.FormValue("max_chars"))
-			if err != nil {
-				localConfig.PageCharacterWidth = 80
-				if EnableLogs {
-					fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
-				}
-				renderError(w, http.StatusBadRequest, "Invalid max_chars parameter value")
-				return
-			}
-
-			// Extract the parallel form arrays submitted from the DOM color blocks
-			formSubstrings := r.PostForm["substring[]"]
-			formHexCodes := r.PostForm["hexcolorcode[]"]
-
-			var colors []arghandler.ColorInfo
-			colorCounter := 1
-
-			// Loop through arrays using the substrings count length as our limit boundary
-			for i := 0; i < len(formSubstrings); i++ {
-				subStr := formSubstrings[i]
-				hexStr := ""
-				if i < len(formHexCodes) {
-					hexStr = formHexCodes[i]
-				}
-
-				// If JS flagged this form element via readOnly string, expand it to all text lines
-				if subStr == "_ALL_TEXT_" {
-					for _, textLine := range localConfig.Text {
-						// Skip empty lines to prevent unnecessary color processing overhead
-						if textLine == "" {
-							continue
-						}
-						colors = append(colors, arghandler.ColorInfo{
-							Num:       colorCounter,
-							ColorCode: hexStr,
-							Substring: textLine, // Target the full contents of this row line directly
-						})
-						colorCounter++
-					}
-				} else {
-					// Standard explicit single substring mapping process branch
-					colors = append(colors, arghandler.ColorInfo{
-						Num:       colorCounter,
-						ColorCode: hexStr,
-						Substring: subStr,
-					})
-					colorCounter++
-				}
-			}
-
-			// Assign parsed dynamic arrays right into your Config object context state
-			localConfig.Color = colors
-			localConfig.SortColors()
-
-			// Enhanced Debug Logging for Form POST
-			if EnableLogs {
-				fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s | Colors Count: %d\n",
-					r.FormValue("userText"),
-					r.FormValue("FontWrap"),
-					r.FormValue("Realtime"),
-					r.FormValue("FontAlign"),
-					r.FormValue("font"),
-					r.FormValue("max_chars"),
-					len(localConfig.Color),
-				)
-				if len(localConfig.Color) > 0 {
-					fmt.Println("--- Sorted Colors Detail (POST) ---")
-					for _, c := range localConfig.Color {
-						fmt.Printf("  -> Num: %d | Substring: %q | ColorCode/HEX: %s\n", c.Num, c.Substring, c.ColorCode)
-					}
-					fmt.Println("-----------------------------------")
-				}
-			}
-
-			f := font.CreateFont(localConfig)
-			f.RenderResult()
-			var rawHTML string
-			for i := 0; i < len(f.FinalResult); i++ {
-				rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
-			}
-
-			localData.Output = template.HTML(rawHTML)
-		} else {
+		f, err := processASCIIRequest(r)
+		if err != nil {
 			renderError(w, http.StatusBadRequest, "Failed to parse submitted form data")
 			return
 		}
+		localData.UserText = r.FormValue("userText")
+
+		var rawHTML string
+		for i := 0; i < len(f.FinalResult); i++ {
+			rawHTML += "<span class=\"line\">" + f.FinalResult[i] + "</span>"
+		}
+		localData.Output = template.HTML(rawHTML)
 	}
 
 	// Parse the HTML file from disk
@@ -296,6 +207,142 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(localData)
+}
+
+// ExportHandler processes the ASCII art parameters and serves a plain text file attachment
+func ExportHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		renderError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	f, err := processASCIIRequest(r)
+	if err != nil {
+		renderError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	exportRawText := strings.Join(f.SimpleResult, "\n")
+	fileBytes := []byte(exportRawText)
+
+	contentLengthStr := strconv.Itoa(len(fileBytes))
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Length", contentLengthStr)
+	w.Header().Set("Content-Disposition", "attachment; filename=\"art.txt\"")
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(fileBytes)
+}
+
+// CopyHandler processes the ASCII art parameters and returns the SimpleResult as plain text
+func CopyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		renderError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	f, err := processASCIIRequest(r)
+	if err != nil {
+		renderError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	exportRawText := strings.Join(f.SimpleResult, "\n")
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(exportRawText))
+}
+
+// processASCIIRequest parses the form data and renders the ASCII art into a font instance
+func processASCIIRequest(r *http.Request) (*font.Font, error) {
+	// Attempt to parse multipart form data first (handles JavaScript Fetch/FormData)
+	// If that fails, fallback to standard form parsing (handles traditional POST)
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		if err = r.ParseForm(); err != nil {
+			return nil, fmt.Errorf("failed to parse submitted form data")
+		}
+	}
+
+	localConfig := arghandler.NewConfig()
+
+	// Normalize input text
+	err := localConfig.NormalizeInput(r.FormValue("userText"))
+	if err != nil && !Bypass400 {
+		return nil, err
+	}
+
+	// Set configuration fields from form values
+	localConfig.Output = r.FormValue("FontWrap")
+	localConfig.Align = r.FormValue("FontAlign")
+	localConfig.Font = r.FormValue("font")
+
+	// Parse max_chars safely
+	var errMaxChars error
+	localConfig.PageCharacterWidth, errMaxChars = strconv.Atoi(r.FormValue("max_chars"))
+	if errMaxChars != nil {
+		localConfig.PageCharacterWidth = 80
+		if EnableLogs {
+			fmt.Println("Invalid max_chars value. Defaulting to 80 characters per line.")
+		}
+		return nil, fmt.Errorf("invalid max_chars parameter value")
+	}
+
+	// Handle substring and hex color arrays
+	formSubstrings := r.PostForm["substring[]"]
+	formHexCodes := r.PostForm["hexcolorcode[]"]
+
+	var colors []arghandler.ColorInfo
+	colorCounter := 1
+
+	for i := 0; i < len(formSubstrings); i++ {
+		subStr := formSubstrings[i]
+		hexStr := ""
+		if i < len(formHexCodes) {
+			hexStr = formHexCodes[i]
+		}
+
+		if subStr == "_ALL_TEXT_" {
+			for _, textLine := range localConfig.Text {
+				if textLine == "" {
+					continue
+				}
+				colors = append(colors, arghandler.ColorInfo{
+					Num:       colorCounter,
+					ColorCode: hexStr,
+					Substring: textLine,
+				})
+				colorCounter++
+			}
+		} else {
+			colors = append(colors, arghandler.ColorInfo{
+				Num:       colorCounter,
+				ColorCode: hexStr,
+				Substring: subStr,
+			})
+			colorCounter++
+		}
+	}
+
+	localConfig.Color = colors
+	localConfig.SortColors()
+
+	// Logging for debugging
+	if EnableLogs {
+		fmt.Printf("[Form POST Log] UserText: %s | FontWrap: %s | Realtime: %s | FontAlign: %s | font: %s | MaxChars: %s | Colors Count: %d\n",
+			r.FormValue("userText"),
+			r.FormValue("FontWrap"),
+			r.FormValue("Realtime"),
+			r.FormValue("FontAlign"),
+			r.FormValue("font"),
+			r.FormValue("max_chars"),
+			len(localConfig.Color),
+		)
+	}
+
+	// Generate font instance
+	f := font.CreateFont(localConfig)
+	f.RenderResult()
+
+	return f, nil
 }
 
 // renderError handles parsing and executing the custom error page

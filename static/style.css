@@ -814,7 +814,7 @@ footer.peek .line-title:hover .toparrow {
 .ascButton:hover {
   background-image: none;
   background-color: var(--accent2-color);
-  color: var(--bg-color);
+  color: var(--accent2-color);
   border-color: var(--accent2-color);
   transform: translateY(1px);
 }
@@ -823,7 +823,7 @@ footer.peek .line-title:hover .toparrow {
   background-image: none;
   background-color: var(--accent-color);
   border-color: var(--accent-color);
-  color: var(--bg-color);
+  color: var(--line-color);
   scale: 0.9;
 }
 
