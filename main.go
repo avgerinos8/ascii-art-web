@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -36,7 +37,13 @@ type ErrorData struct {
 
 // Entrypoint configuration routing all endpoints
 func main() {
+
 	mux := http.NewServeMux()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	fileServer := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
@@ -51,8 +58,8 @@ func main() {
 	fmt.Println("Web server starting. Please wait...")
 	time.Sleep(3 * time.Second)
 
-	fmt.Println("Server ready. Use http://localhost:8080")
-	http.ListenAndServe(":8080", mux)
+	fmt.Println("Server ready on port", port)
+	http.ListenAndServe(":"+port, mux)
 }
 
 // Standard UI Template Handler for index loading and traditional form POSTs
