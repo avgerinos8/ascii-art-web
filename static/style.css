@@ -759,7 +759,7 @@ footer.peek .line-title:hover .toparrow {
   /* Let Flexbox handle precise vertical center alignments */
   transform: none !important;
 
-  width: 35px;
+  width: 55px;
   height: 70px;
   background-color: var(--accent2-color);
   color: #ffffff;
@@ -853,6 +853,8 @@ footer.peek .line-title:hover .toparrow {
   user-select: none;
   display: inline-flex;
   align-items: center;
+
+  min-width: 80px; 
 
   /* Forcefully strip out both native and custom background arrows */
   appearance: none;
