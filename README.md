@@ -13,7 +13,9 @@
 </p>
 
 ---
-THIS PROJECT IS LIVE on https://ascii-art-web-wkaa.onrender.com/
+<div align="center" style="margin: 30px 0;">
+THIS PROJECT IS LIVE on <a href="https://ascii-art-web-wkaa.onrender.com/">https://ascii-art-web-wkaa.onrender.com/</a>
+</div>
 ---
 
 ## 📖 Overview
